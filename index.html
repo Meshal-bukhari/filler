@@ -44,6 +44,12 @@ li{margin:2px 0;font-size:0.9em}
 .collapsible.open::before{content:'▾ '}
 .coll-body{display:none;padding-left:10px}
 .coll-body.show{display:block}
+.overlap-panel{background:#e3f2fd;border:2px solid #1565c0;border-radius:6px;padding:14px;margin:12px 0}
+.overlap-panel h2{color:#1565c0;border-left-color:#1565c0;margin-top:0}
+.overlap-row{background:#fff;border:1px solid #90caf9;border-radius:4px;padding:10px;margin:8px 0}
+.overlap-row b{color:#1565c0}
+.overlap-tag{display:inline-block;background:#bbdefb;color:#0d47a1;padding:2px 8px;border-radius:12px;font-size:0.82em;margin:2px}
+.overlap-tip{background:#c8e6c9;border-left:3px solid #2e7d32;padding:8px 10px;margin:6px 0;font-size:0.9em}
 @media print{body{padding:0;font-size:11px}.checklist,.section:first-of-type,#generateBtn,#clearBtn{display:none}h1{font-size:1.2em}}
 </style>
 </head>
@@ -915,6 +921,38 @@ pearls: `<ul>
 
 };
 
+// === SHARED TARGET MAP: which anatomical areas each concern treats ===
+const TARGETS = {
+temple_hollowing: ["Superficial temporal fat pad","ROOF","Lateral orbital fat"],
+brow_ptosis: ["ROOF","Superficial temporal fat pad"],
+tear_trough: ["Medial SOOF","Deep pyriform space","Tear trough direct (Tt1)"],
+pmg: ["Prezygomatic space","Lateral SOOF","PMG direct (Tt2)"],
+malar_mound: ["Prezygomatic space"],
+negative_vector: ["Prezygomatic space"],
+midface_deflation: ["Lateral SOOF","Medial SOOF","DMCF","Prezygomatic space","Superficial midface fat"],
+lid_cheek_blurring: ["DMCF","Medial SOOF","Prezygomatic space"],
+midcheek_groove: ["Lateral SOOF","Medial SOOF","Prezygomatic space","Superficial midface fat"],
+scleral_show: ["Lateral SOOF"],
+nlf: ["Zygomatic arch (Ck1/Ck2)","DMCF","Deep pyriform space","Subcutaneous NLF"],
+pyriform_depression: ["Deep pyriform space"],
+lip_volume: ["ROOrF","White roll","Philtral columns","Vermilion body","G-K point"],
+vermilion_border: ["White roll"],
+philtral_columns: ["Philtral columns"],
+cupids_bow: ["G-K point"],
+lip_inversion: ["ROOrF","Vermilion body"],
+roorf_deficit: ["ROOrF"],
+barcode_lines: ["Orbicularis oris (neurotoxin)","White roll","Ergotrid zone","Subvermilion"],
+oral_commissure: ["DAO (neurotoxin)","Caudal orbicularis oris","Sub-DAO space","Lateral triangles (MV)"],
+gummy_smile: ["Lip elevators (neurotoxin)","Vermilion body"],
+marionette_lines: ["Midface (cheeks)","DAO (neurotoxin)","Prejowl sulcus (C6)"],
+chin_retrogenia: ["C1 Labiomental crease","C2 Chin apex","C3 Anterior chin","C4 Submental","C5 Lateral lower chin","Prejowl sulcus (C6)"],
+mentalis_strain: ["Mentalis (neurotoxin)","C1 Labiomental crease"],
+labiomental_crease: ["C1 Labiomental crease"],
+prejowl: ["Prejowl sulcus (C6)","Sub-DAO space","Mandibular border"],
+jowling: ["Mandible angle (Jw1)","Pre-auricular (Jw2)","Mandible body (Jw3)","Prejowl sulcus (C6)","Sub-DAO space"],
+jawline: ["Mandible angle (Jw1)","Pre-auricular (Jw2)","Mandible body (Jw3)","Prejowl sulcus (C6)","Sub-DAO space"]
+};
+
 function generatePlan(){
 const checked = [...document.querySelectorAll('#checklist input:checked')].map(c=>c.value);
 if(!checked.length){alert('Please select at least one concern.');return;}
@@ -925,8 +963,37 @@ let html = '';
 const items = checked.map(k=>({key:k,...DATA[k]})).filter(x=>x.title);
 items.sort((a,b)=>(a.sequencePriority||5)-(b.sequencePriority||5));
 
+// === OVERLAP DETECTION ===
+const areaToKeys = {};
+checked.forEach(k=>{
+(TARGETS[k]||[]).forEach(area=>{
+if(!areaToKeys[area]) areaToKeys[area]=[];
+areaToKeys[area].push(k);
+});
+});
+const overlaps = Object.entries(areaToKeys).filter(([a,keys])=>keys.length>1);
+
 // Summary
-html += `<div class="summary-bar">📋 <b>Plan generated for ${items.length} concern(s)</b>. Organized by treatment sequence (foundation → contour → refinement).</div>`;
+html += `<div class="summary-bar">📋 <b>Plan generated for ${items.length} concern(s)</b>. Organized by treatment sequence (foundation → contour → refinement).`;
+if(overlaps.length) html += ` | <b>${overlaps.length} shared target area(s) detected</b> — see overlap panel below.`;
+html += `</div>`;
+
+// === OVERLAP PANEL ===
+if(overlaps.length){
+html += `<div class="overlap-panel">
+<h2>🔗 Shared Target Areas — Treat Once, Address Multiple Concerns</h2>
+<p style="font-size:0.88em;margin-bottom:8px">The following anatomical targets are shared by multiple selected concerns. <b>One injection in these areas addresses several problems simultaneously</b> — plan your volumes and technique accordingly to avoid double-dosing.</p>`;
+overlaps.sort((a,b)=>b[1].length-a[1].length);
+overlaps.forEach(([area, keys])=>{
+const names = keys.map(k=>DATA[k]?DATA[k].title:k);
+html += `<div class="overlap-row">
+<b>📍 ${area}</b> — addresses <b>${keys.length}</b> concerns:<br>`;
+names.forEach(n=>{ html += `<span class="overlap-tag">${n}</span> `; });
+html += `<div class="overlap-tip">💡 <b>Efficiency:</b> A single treatment session targeting <b>${area}</b> will contribute to correcting: ${names.join(', ')}. Adjust total volume to account for this overlap — do not inject separate full volumes for each indication.</div>
+</div>`;
+});
+html += `</div>`;
+}
 
 // Global sequence note
 const hasMidface = checked.some(k=>['midface_deflation','lid_cheek_blurring','midcheek_groove','nlf','tear_trough','pmg','malar_mound','negative_vector','scleral_show','pyriform_depression'].includes(k));
@@ -943,9 +1010,26 @@ html += `</ol></div>`;
 
 // Cards
 items.forEach(item=>{
+// compute per-card overlaps
+const myTargets = TARGETS[item.key]||[];
+const myOverlaps = {};
+myTargets.forEach(area=>{
+const shared = (areaToKeys[area]||[]).filter(k=>k!==item.key);
+if(shared.length) myOverlaps[area] = shared.map(k=>DATA[k]?DATA[k].title:k);
+});
+const hasOverlap = Object.keys(myOverlaps).length>0;
+
 html += `<div class="plan-card">
-<h2>${item.title}</h2>
-<div class="seq-note" style="margin-bottom:10px">⏱ <b>Sequence:</b> ${item.sequenceNote}</div>
+<h2>${item.title}</h2>`;
+if(hasOverlap){
+html += `<div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:4px;padding:8px;margin-bottom:10px;font-size:0.88em">
+<b>🔗 Shared targets with other selected concerns:</b><br>`;
+Object.entries(myOverlaps).forEach(([area,names])=>{
+html += `<span style="color:#1565c0"><b>${area}</b></span> → also treats: ${names.map(n=>'<span class="overlap-tag">'+n+'</span>').join(' ')}<br>`;
+});
+html += `</div>`;
+}
+html += `<div class="seq-note" style="margin-bottom:10px">⏱ <b>Sequence:</b> ${item.sequenceNote}</div>
 
 <h3 class="collapsible" onclick="toggleColl(this)">Indications</h3>
 <div class="coll-body show">${item.indications}</div>
