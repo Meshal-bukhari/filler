@@ -953,6 +953,39 @@ jowling: ["Mandible angle (Jw1)","Pre-auricular (Jw2)","Mandible body (Jw3)","Pr
 jawline: ["Mandible angle (Jw1)","Pre-auricular (Jw2)","Mandible body (Jw3)","Prejowl sulcus (C6)","Sub-DAO space"]
 };
 
+// === VOLUME ESTIMATES (mL, both sides combined) ===
+// Each entry: [min, avg, max] + breakdown per sub-compartment
+const VOLUMES = {
+temple_hollowing: {min:1.0, avg:1.2, max:1.4, breakdown:[{area:"Temple (per side)",min:0.5,avg:0.6,max:0.7}]},
+brow_ptosis: {min:1.0, avg:1.2, max:1.4, breakdown:[{area:"Temple/ROOF (per side)",min:0.5,avg:0.6,max:0.7}], note:"Combined with temple treatment — not additive if temple_hollowing also selected"},
+tear_trough: {min:0.8, avg:1.2, max:1.6, breakdown:[{area:"Medial SOOF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Pyriform (per side)",min:0.1,avg:0.15,max:0.2},{area:"Direct Tt1 (per side)",min:0.1,avg:0.15,max:0.2}]},
+pmg: {min:1.0, avg:1.4, max:2.0, breakdown:[{area:"Prezygomatic space (per side)",min:0.4,avg:0.5,max:0.6},{area:"Lateral SOOF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Direct PMG Tt2 (per side)",min:0.1,avg:0.15,max:0.2}], note:"Deep prezygomatic volume shared with midface deflation"},
+malar_mound: {min:0.8, avg:1.0, max:1.2, breakdown:[{area:"Prezygomatic space (per side)",min:0.4,avg:0.5,max:0.6}]},
+negative_vector: {min:0.8, avg:1.0, max:1.2, breakdown:[{area:"Prezygomatic space (per side)",min:0.4,avg:0.5,max:0.6}]},
+midface_deflation: {min:2.4, avg:3.6, max:5.2, breakdown:[{area:"Lateral SOOF (per side)",min:0.2,avg:0.4,max:0.6},{area:"Medial SOOF (per side)",min:0.2,avg:0.3,max:0.4},{area:"DMCF (per side)",min:0.2,avg:0.4,max:0.6},{area:"Prezygomatic space (per side)",min:0.4,avg:0.5,max:0.6},{area:"Superficial fat (per side, if needed)",min:0.2,avg:0.3,max:0.5}]},
+lid_cheek_blurring: {min:1.2, avg:1.8, max:2.4, breakdown:[{area:"DMCF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Medial SOOF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Prezygomatic space (per side)",min:0.2,avg:0.4,max:0.5}]},
+midcheek_groove: {min:2.0, avg:3.0, max:4.0, breakdown:[{area:"Lateral SOOF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Medial SOOF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Prezygomatic (per side)",min:0.3,avg:0.4,max:0.5},{area:"Superficial fat (per side)",min:0.3,avg:0.5,max:0.7}]},
+scleral_show: {min:0.4, avg:0.6, max:0.8, breakdown:[{area:"Lateral SOOF (per side)",min:0.2,avg:0.3,max:0.4}]},
+nlf: {min:1.0, avg:1.6, max:2.4, breakdown:[{area:"Ck1/Ck2 cheek (per side)",min:0.1,avg:0.2,max:0.3},{area:"DMCF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Pyriform (per side)",min:0.1,avg:0.15,max:0.2},{area:"Superficial NLF (per side, if needed)",min:0.1,avg:0.2,max:0.3}]},
+pyriform_depression: {min:0.3, avg:0.4, max:0.6, breakdown:[{area:"Deep pyriform (per side)",min:0.15,avg:0.2,max:0.3}]},
+lip_volume: {min:1.0, avg:1.5, max:2.5, breakdown:[{area:"ROOrF (per side, if indicated)",min:0.2,avg:0.3,max:0.4},{area:"White roll (total)",min:0.1,avg:0.2,max:0.3},{area:"Philtral columns (total)",min:0.1,avg:0.15,max:0.2},{area:"Vermilion body (total)",min:0.4,avg:0.6,max:1.0},{area:"Tubercles + G-K (total)",min:0.1,avg:0.15,max:0.2}]},
+vermilion_border: {min:0.1, avg:0.2, max:0.4, breakdown:[{area:"White roll (total)",min:0.1,avg:0.2,max:0.4}]},
+philtral_columns: {min:0.1, avg:0.2, max:0.3, breakdown:[{area:"Philtral columns (total)",min:0.1,avg:0.2,max:0.3}]},
+cupids_bow: {min:0.05, avg:0.1, max:0.15, breakdown:[{area:"G-K point microbolus",min:0.05,avg:0.1,max:0.15}]},
+lip_inversion: {min:0.8, avg:1.2, max:1.8, breakdown:[{area:"ROOrF (per side)",min:0.2,avg:0.3,max:0.4},{area:"Vermilion eversion (total)",min:0.3,avg:0.5,max:0.8}]},
+roorf_deficit: {min:0.6, avg:0.8, max:1.0, breakdown:[{area:"ROOrF (per side)",min:0.3,avg:0.4,max:0.5}]},
+barcode_lines: {min:0.2, avg:0.4, max:0.8, breakdown:[{area:"Border tensioning (total)",min:0.05,avg:0.1,max:0.2},{area:"Intradermal crosshatch (total)",min:0.1,avg:0.15,max:0.3},{area:"Ergotrid + subvermilion (total)",min:0.05,avg:0.15,max:0.3}], note:"Also requires neurotoxin (4U OnabotulinumtoxinA circumoral)"},
+oral_commissure: {min:0.4, avg:0.8, max:1.2, breakdown:[{area:"Caudal OOM strut (per side)",min:0.05,avg:0.1,max:0.15},{area:"Sub-DAO support (per side)",min:0.1,avg:0.15,max:0.2},{area:"Triangular reflation (per side)",min:0.05,avg:0.15,max:0.2}], note:"Also requires neurotoxin: DAO 2.5–4U per side"},
+gummy_smile: {min:0.2, avg:0.4, max:0.6, breakdown:[{area:"Vermilion coverage (total)",min:0.2,avg:0.4,max:0.6}], note:"Also requires neurotoxin to lip elevators (2–4U/side)"},
+marionette_lines: {min:1.0, avg:1.5, max:2.0, breakdown:[{area:"Prejowl/C6 (per side)",min:0.3,avg:0.4,max:0.5},{area:"Direct fold (per side, if persistent)",min:0.2,avg:0.3,max:0.5}], note:"Primary treatment is midface + DAO neurotoxin — volumes here are for local filling only"},
+chin_retrogenia: {min:2.0, avg:2.5, max:4.0, breakdown:[{area:"C1 Labiomental",min:0.5,avg:0.6,max:0.7},{area:"C2 Chin apex",min:0.2,avg:0.3,max:0.3},{area:"C3 Anterior chin",min:0.2,avg:0.3,max:0.3},{area:"C4 Submental",min:0.2,avg:0.3,max:0.3},{area:"C5 Lateral chin (×2 sides)",min:0,avg:0.3,max:0.6},{area:"C6 Prejowl (×2 sides)",min:0.5,avg:0.7,max:1.0}], note:"C5 mainly for males. Divide into 2–3 sessions if high tissue tension."},
+mentalis_strain: {min:0, avg:0, max:0, breakdown:[], note:"Neurotoxin only (mentalis injection). No filler volume — filler is part of chin retrogenia protocol."},
+labiomental_crease: {min:0.5, avg:0.6, max:0.7, breakdown:[{area:"C1 Labiomental crease",min:0.5,avg:0.6,max:0.7}]},
+prejowl: {min:1.0, avg:1.5, max:2.0, breakdown:[{area:"Deep supraperiosteal (per side)",min:0.2,avg:0.3,max:0.4},{area:"Sub-DAO cannula (per side)",min:0.1,avg:0.2,max:0.3},{area:"Superficial camouflage (per side)",min:0.1,avg:0.2,max:0.3}]},
+jowling: {min:2.0, avg:3.0, max:4.0, breakdown:[{area:"Jw1 Mandible angle (per side)",min:0.3,avg:0.5,max:0.5},{area:"Jw2 Pre-auricular (per side)",min:0.3,avg:0.5,max:0.5},{area:"Jw3 Mandible body (per side)",min:0.5,avg:0.7,max:1.0},{area:"Prejowl blend (per side)",min:0.2,avg:0.3,max:0.5}]},
+jawline: {min:2.0, avg:3.0, max:4.0, breakdown:[{area:"Jw1 Mandible angle (per side)",min:0.3,avg:0.5,max:0.5},{area:"Jw2 Pre-auricular (per side)",min:0.3,avg:0.5,max:0.5},{area:"Jw3 Mandible body (per side)",min:0.5,avg:0.7,max:1.0},{area:"Prejowl blend (per side)",min:0.2,avg:0.3,max:0.5}]}
+};
+
 function generatePlan(){
 const checked = [...document.querySelectorAll('#checklist input:checked')].map(c=>c.value);
 if(!checked.length){alert('Please select at least one concern.');return;}
@@ -973,9 +1006,13 @@ areaToKeys[area].push(k);
 });
 const overlaps = Object.entries(areaToKeys).filter(([a,keys])=>keys.length>1);
 
+// Quick volume pre-calc for summary bar
+let qMin=0,qAvg=0,qMax=0;
+checked.forEach(k=>{const v=VOLUMES[k];if(v){qMin+=v.min;qAvg+=v.avg;qMax+=v.max;}});
+
 // Summary
-html += `<div class="summary-bar">📋 <b>Plan generated for ${items.length} concern(s)</b>. Organized by treatment sequence (foundation → contour → refinement).`;
-if(overlaps.length) html += ` | <b>${overlaps.length} shared target area(s) detected</b> — see overlap panel below.`;
+html += `<div class="summary-bar">📋 <b>Plan generated for ${items.length} concern(s)</b> | 💉 Est. volume: <b>${qMin.toFixed(1)}–${qMax.toFixed(1)} mL</b> (avg ${qAvg.toFixed(1)} mL)`;
+if(overlaps.length) html += ` | 🔗 <b>${overlaps.length} shared target(s)</b>`;
 html += `</div>`;
 
 // === OVERLAP PANEL ===
@@ -994,6 +1031,91 @@ html += `<div class="overlap-tip">💡 <b>Efficiency:</b> A single treatment ses
 });
 html += `</div>`;
 }
+
+// === VOLUME ESTIMATION ===
+let totalMin=0, totalAvg=0, totalMax=0;
+const volRows = [];
+items.forEach(item=>{
+const v = VOLUMES[item.key];
+if(v && v.max>0){
+totalMin += v.min; totalAvg += v.avg; totalMax += v.max;
+volRows.push(item);
+}
+});
+// Detect overlap deductions
+const overlapDeduct = {min:0,avg:0,max:0};
+const deductNotes = [];
+// brow_ptosis + temple_hollowing share same area
+if(checked.includes('brow_ptosis') && checked.includes('temple_hollowing')){
+overlapDeduct.min += VOLUMES.brow_ptosis.min; overlapDeduct.avg += VOLUMES.brow_ptosis.avg; overlapDeduct.max += VOLUMES.brow_ptosis.max;
+deductNotes.push("Brow Ptosis volume already included in Temple Hollowing");
+}
+// jowling + jawline are same treatment
+if(checked.includes('jowling') && checked.includes('jawline')){
+overlapDeduct.min += VOLUMES.jowling.min; overlapDeduct.avg += VOLUMES.jowling.avg; overlapDeduct.max += VOLUMES.jowling.max;
+deductNotes.push("Jowling volume already included in Jawline Definition");
+}
+// labiomental_crease is C1 included in chin_retrogenia
+if(checked.includes('labiomental_crease') && checked.includes('chin_retrogenia')){
+overlapDeduct.min += VOLUMES.labiomental_crease.min; overlapDeduct.avg += VOLUMES.labiomental_crease.avg; overlapDeduct.max += VOLUMES.labiomental_crease.max;
+deductNotes.push("Labiomental Crease (C1) already included in Chin Retrogenia protocol");
+}
+// vermilion_border included in lip_volume
+if(checked.includes('vermilion_border') && checked.includes('lip_volume')){
+overlapDeduct.min += VOLUMES.vermilion_border.min; overlapDeduct.avg += VOLUMES.vermilion_border.avg; overlapDeduct.max += VOLUMES.vermilion_border.max;
+deductNotes.push("Vermilion Border already included in Lip Volume protocol");
+}
+// philtral_columns included in lip_volume
+if(checked.includes('philtral_columns') && checked.includes('lip_volume')){
+overlapDeduct.min += VOLUMES.philtral_columns.min; overlapDeduct.avg += VOLUMES.philtral_columns.avg; overlapDeduct.max += VOLUMES.philtral_columns.max;
+deductNotes.push("Philtral Columns already included in Lip Volume protocol");
+}
+// cupids_bow included in lip_volume
+if(checked.includes('cupids_bow') && checked.includes('lip_volume')){
+overlapDeduct.min += VOLUMES.cupids_bow.min; overlapDeduct.avg += VOLUMES.cupids_bow.avg; overlapDeduct.max += VOLUMES.cupids_bow.max;
+deductNotes.push("Cupid's Bow already included in Lip Volume protocol");
+}
+// roorf_deficit included in lip_volume or lip_inversion
+if(checked.includes('roorf_deficit') && (checked.includes('lip_volume') || checked.includes('lip_inversion'))){
+overlapDeduct.min += VOLUMES.roorf_deficit.min; overlapDeduct.avg += VOLUMES.roorf_deficit.avg; overlapDeduct.max += VOLUMES.roorf_deficit.max;
+deductNotes.push("ROOrF volume already included in Lip Volume / Lip Inversion protocol");
+}
+// prejowl C6 included in chin_retrogenia
+if(checked.includes('prejowl') && checked.includes('chin_retrogenia')){
+const ded = {min:0.5,avg:0.7,max:1.0}; // C6 portion in chin protocol
+overlapDeduct.min += ded.min; overlapDeduct.avg += ded.avg; overlapDeduct.max += ded.max;
+deductNotes.push("Prejowl Sulcus (C6) partially included in Chin Retrogenia protocol — partial deduction applied");
+}
+
+const adjMin = Math.max(0,totalMin - overlapDeduct.min);
+const adjAvg = Math.max(0,totalAvg - overlapDeduct.avg);
+const adjMax = Math.max(0,totalMax - overlapDeduct.max);
+const syringesMin = Math.ceil(adjMin);
+const syringesAvg = Math.ceil(adjAvg);
+const syringesMax = Math.ceil(adjMax);
+
+html += `<div class="plan-card" style="border:2px solid #e65100">
+<h2 style="color:#e65100;border-left-color:#e65100">💉 Volume Estimation (Both Sides Combined)</h2>
+<table>
+<tr><th>Indication</th><th>Min (mL)</th><th>Avg (mL)</th><th>Max (mL)</th><th>Notes</th></tr>`;
+volRows.forEach(item=>{
+const v = VOLUMES[item.key];
+html += `<tr><td>${item.title}</td><td>${v.min.toFixed(1)}</td><td>${v.avg.toFixed(1)}</td><td>${v.max.toFixed(1)}</td><td style="font-size:0.82em">${v.note||'—'}</td></tr>`;
+});
+if(VOLUMES[items.find(i=>i.key==='mentalis_strain')?.key]){
+html += `<tr><td>Mentalis Strain</td><td colspan="3" style="text-align:center"><i>Neurotoxin only — no filler</i></td><td style="font-size:0.82em">Filler via chin retrogenia protocol</td></tr>`;
+}
+html += `<tr style="background:#fff3e0;font-weight:700"><td>Raw Total</td><td>${totalMin.toFixed(1)}</td><td>${totalAvg.toFixed(1)}</td><td>${totalMax.toFixed(1)}</td><td></td></tr>`;
+if(deductNotes.length){
+html += `<tr style="background:#fce4ec"><td>Overlap Deduction</td><td>−${overlapDeduct.min.toFixed(1)}</td><td>−${overlapDeduct.avg.toFixed(1)}</td><td>−${overlapDeduct.max.toFixed(1)}</td><td style="font-size:0.82em">${deductNotes.join('; ')}</td></tr>`;
+}
+html += `<tr style="background:#e8f5e9;font-weight:700;font-size:1.05em"><td>Adjusted Total</td><td>${adjMin.toFixed(1)}</td><td>${adjAvg.toFixed(1)}</td><td>${adjMax.toFixed(1)}</td><td></td></tr>`;
+html += `</table>
+<div style="margin-top:10px;padding:10px;background:#fff8e1;border-radius:4px;font-size:0.9em">
+<b>🔢 Estimated Syringes (1 mL each):</b> Min <b>${syringesMin}</b> — Avg <b>${syringesAvg}</b> — Max <b>${syringesMax}</b><br>
+<span style="color:#777;font-size:0.85em">⚠ Estimates are guidelines based on published MD Codes, clinical protocols, and source data. Adjust per patient anatomy, degree of deficit, and clinical judgment. Volumes assume bilateral treatment. Overlap deductions account for shared compartments to avoid double-dosing.</span>
+</div>
+</div>`;
 
 // Global sequence note
 const hasMidface = checked.some(k=>['midface_deflation','lid_cheek_blurring','midcheek_groove','nlf','tear_trough','pmg','malar_mound','negative_vector','scleral_show','pyriform_depression'].includes(k));
@@ -1050,7 +1172,15 @@ html += `<div class="seq-note" style="margin-bottom:10px">⏱ <b>Sequence:</b> $
 <div class="coll-body show"><div class="product-box">${item.products}</div></div>
 
 <h3 class="collapsible open" onclick="toggleColl(this)">Volumes</h3>
-<div class="coll-body show">${item.volumes}</div>
+<div class="coll-body show">${item.volumes}${(()=>{
+const v=VOLUMES[item.key];
+if(!v||!v.breakdown||!v.breakdown.length) return v&&v.note?'<div style="margin-top:6px;font-size:0.85em;color:#777"><i>'+v.note+'</i></div>':'';
+let t='<table style="margin-top:8px"><tr><th>Sub-compartment</th><th>Min (mL)</th><th>Avg (mL)</th><th>Max (mL)</th></tr>';
+v.breakdown.forEach(b=>{t+='<tr><td>'+b.area+'</td><td>'+b.min.toFixed(2)+'</td><td>'+b.avg.toFixed(2)+'</td><td>'+b.max.toFixed(2)+'</td></tr>';});
+t+='<tr style="background:#fff3e0;font-weight:600"><td>Total (both sides)</td><td>'+v.min.toFixed(1)+'</td><td>'+v.avg.toFixed(1)+'</td><td>'+v.max.toFixed(1)+'</td></tr></table>';
+if(v.note) t+='<div style="margin-top:4px;font-size:0.85em;color:#777"><i>'+v.note+'</i></div>';
+return t;
+})()}</div>
 
 <h3 class="collapsible open" onclick="toggleColl(this)">Expected Outcomes</h3>
 <div class="coll-body show">${item.outcomes}</div>
