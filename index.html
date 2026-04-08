@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facial Injection Procedural Planner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f5f5f0;color:#222;line-height:1.5;padding:10px}
+h1{font-size:1.4em;padding:10px 0;border-bottom:2px solid #333}
+h2{font-size:1.2em;margin:15px 0 8px;color:#1a5276;border-left:4px solid #1a5276;padding-left:8px}
+h3{font-size:1.05em;margin:12px 0 5px;color:#333}
+h4{font-size:0.95em;margin:8px 0 4px;color:#555}
+.container{max-width:1100px;margin:0 auto}
+.section{background:#fff;border:1px solid #ccc;border-radius:6px;padding:12px;margin:10px 0}
+.checklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
+.checklist label{display:flex;align-items:flex-start;gap:6px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:0.88em;background:#fafafa}
+.checklist label:hover{background:#eef5ff}
+.checklist input{margin-top:3px;flex-shrink:0}
+.region-title{font-weight:700;font-size:0.95em;color:#1a5276;padding:6px 0 3px;grid-column:1/-1;border-bottom:1px solid #ddd;margin-top:6px}
+#generateBtn{background:#1a5276;color:#fff;border:none;padding:12px 30px;font-size:1em;border-radius:6px;cursor:pointer;margin:10px 0}
+#generateBtn:hover{background:#154360}
+#clearBtn{background:#aaa;color:#fff;border:none;padding:8px 20px;font-size:0.9em;border-radius:6px;cursor:pointer;margin:10px}
+#clearBtn:hover{background:#888}
+#output{margin-top:15px}
+.plan-card{background:#fff;border:1px solid #bbb;border-radius:6px;padding:14px;margin:12px 0}
+.plan-card h2{margin-top:0}
+.danger{color:#c0392b;font-weight:600}
+.pearl{background:#fffde7;border-left:3px solid #f9a825;padding:6px 10px;margin:6px 0;font-size:0.9em}
+.safety{background:#ffebee;border-left:3px solid #c62828;padding:6px 10px;margin:6px 0;font-size:0.9em}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:0.88em}
+table th,table td{border:1px solid #ccc;padding:5px 8px;text-align:left}
+table th{background:#f0f0f0;font-weight:600}
+.seq-note{background:#e8f5e9;border-left:3px solid #2e7d32;padding:8px 10px;margin:8px 0;font-size:0.9em}
+.product-box{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:6px 10px;margin:6px 0;font-size:0.9em}
+ul{margin:4px 0 4px 18px}
+li{margin:2px 0;font-size:0.9em}
+.summary-bar{background:#1a5276;color:#fff;padding:10px 14px;border-radius:6px;margin:10px 0;font-size:0.95em}
+#sequenceOrder{margin:10px 0}
+#sequenceOrder ol{margin-left:20px}
+#sequenceOrder li{padding:2px 0}
+.collapsible{cursor:pointer;user-select:none}
+.collapsible::before{content:'▸ ';font-weight:700}
+.collapsible.open::before{content:'▾ '}
+.coll-body{display:none;padding-left:10px}
+.coll-body.show{display:block}
+@media print{body{padding:0;font-size:11px}.checklist,.section:first-of-type,#generateBtn,#clearBtn{display:none}h1{font-size:1.2em}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🔬 Facial Injection Procedural Planner</h1>
+<p style="font-size:0.85em;color:#555;padding:4px 0">Check patient concerns / examination findings → Generate procedural plan. For physician use only.</p>
+
+<div class="section">
+<h2 style="border:none;margin:0 0 8px;padding:0">Patient Concerns & Examination Findings</h2>
+<div class="checklist" id="checklist">
+
+<div class="region-title">🔷 Upper Face</div>
+<label><input type="checkbox" value="temple_hollowing"> Temporal hollowing / skeletonized temples</label>
+<label><input type="checkbox" value="brow_ptosis"> Brow tail ptosis / upper lid sulcus hollowing</label>
+
+<div class="region-title">🔷 Periorbital / Midface</div>
+<label><input type="checkbox" value="tear_trough"> Tear trough / nasojugal groove</label>
+<label><input type="checkbox" value="pmg"> Palpebromalar groove (PMG)</label>
+<label><input type="checkbox" value="malar_mound"> Malar mounds / festoons</label>
+<label><input type="checkbox" value="negative_vector"> Negative lower eyelid vector</label>
+<label><input type="checkbox" value="midface_deflation"> Midface deflation / flat cheek / lost Ogee curve</label>
+<label><input type="checkbox" value="lid_cheek_blurring"> Lid-cheek junction blurring / V-deformity</label>
+<label><input type="checkbox" value="midcheek_groove"> Midcheek groove ("Indian bands")</label>
+<label><input type="checkbox" value="scleral_show"> Scleral show</label>
+
+<div class="region-title">🔷 Nasolabial / Pyriform</div>
+<label><input type="checkbox" value="nlf"> Nasolabial folds (NLF)</label>
+<label><input type="checkbox" value="pyriform_depression"> Pyriform depression / alar base retrusion</label>
+
+<div class="region-title">🔷 Lips & Perioral</div>
+<label><input type="checkbox" value="lip_volume"> Lip volume loss / thin lips</label>
+<label><input type="checkbox" value="vermilion_border"> Vermilion border effacement</label>
+<label><input type="checkbox" value="philtral_columns"> Philtral column splaying</label>
+<label><input type="checkbox" value="cupids_bow"> Cupid's bow flattening</label>
+<label><input type="checkbox" value="lip_inversion"> Lip inversion / loss of incisor show</label>
+<label><input type="checkbox" value="roorf_deficit"> Upper lip skeletal deficit (ROOrF indication)</label>
+<label><input type="checkbox" value="barcode_lines"> Perioral barcode lines (smoker lines)</label>
+<label><input type="checkbox" value="oral_commissure"> Oral commissure ptosis (downturned corners)</label>
+<label><input type="checkbox" value="gummy_smile"> Gummy smile</label>
+
+<div class="region-title">🔷 Lower Face</div>
+<label><input type="checkbox" value="marionette_lines"> Marionette lines (melomental folds)</label>
+<label><input type="checkbox" value="chin_retrogenia"> Retrogenia (recessed chin)</label>
+<label><input type="checkbox" value="mentalis_strain"> Mentalis strain / chin dimpling</label>
+<label><input type="checkbox" value="labiomental_crease"> Deep labiomental crease</label>
+<label><input type="checkbox" value="prejowl"> Prejowl sulcus</label>
+<label><input type="checkbox" value="jowling"> Jowling / mandibular contour loss</label>
+<label><input type="checkbox" value="jawline"> Jawline definition loss / mandibular border</label>
+
+</div>
+<div style="margin-top:12px">
+<button id="generateBtn" onclick="generatePlan()">Generate Procedural Plan</button>
+<button id="clearBtn" onclick="clearAll()">Clear All</button>
+</div>
+</div>
+
+<div id="output"></div>
+</div>
+
+<script>
+function clearAll(){
+document.querySelectorAll('#checklist input').forEach(c=>c.checked=false);
+document.getElementById('output').innerHTML='';
+}
+
+const DATA = {
+
+temple_hollowing: {
+title: "Temple Hollowing",
+sequencePriority: 3,
+sequenceNote: "Treat after midface (cheeks). Part of the 'contouring' phase following the 'foundation' phase.",
+indications: "Temporal hollowing from adipose atrophy (superficial temporal fat pad, lateral orbital fat, lateral temporal cheek fat), temporalis muscle thinning, skeletonized lateral orbital rim and zygomatic arch. Addresses 'tired/elderly' look, restores bitemporal width and heart-shaped contour.",
+targetCompartments: `<b>Superficial temporal fat pad</b> (lateral and anterior compartments), <b>ROOF</b> (retro-orbicularis oculi fat) for brow support.`,
+howToReach: `<b>Cannula approach (preferred, 23–25G flexible):</b>
+<ul>
+<li><b>Entry points:</b> (1) Anterior border of sideburn, 2–3 cm superior to helical root; (2) At vertical/horizontal intersection of sideburn; (3) For lifting: 1 cm anterior to tragus</li>
+<li><b>Pilot needle depth:</b> Subdermal/superficial fat plane only — do NOT touch bone for cannula work</li>
+<li><b>Lateral temporal approach:</b> Advance cannula medially into superficial fat layer; feel characteristic resistance at compartment boundaries</li>
+<li><b>Anterior temporal approach:</b> Direct cannula along anterior-inferior side of superficial temporal septum (correlates with Pitanguy's line)</li>
+<li><b>Injection:</b> Retrograde fanning — deposit filler on withdrawal for even distribution</li>
+</ul>
+<b>Needle approach (limited):</b>
+<ul>
+<li>Only safe in the <b>inferior medial quadrant on bone</b> ("1 Up and 1 Over" Swift technique)</li>
+<li>All other areas: cannula only</li>
+</ul>`,
+vessels: `<ul>
+<li><b>Superficial temporal artery (STA)</b> — anterior branch communicates with supraorbital artery; retrograde thrombosis → blindness risk</li>
+<li><b>Frontal branch of facial nerve</b> — crosses STA in lower temporal compartment within the TPF; injury → permanent frontalis paralysis</li>
+<li><b>"Danger Coordinate"</b> — junction where frontal nerve branch and STA cross, over zygomatic arch. Most dangerous 2D coordinate in temporal region</li>
+</ul>`,
+avoidance: `<ul>
+<li><b>Thumb Rule:</b> Place radial border of thumb on H2 (horizontal line through uppermost eyebrow point), tip on V2 (vertical through lateral epicanthus). Area from tip to first joint = primary danger zone → NO needles here</li>
+<li><b>Pitanguy's line:</b> Tragus → 1.5 cm above lateral eyebrow — danger plane</li>
+<li>Direct needles contraindicated everywhere except inferior medial quadrant on bone</li>
+<li>Use blunt cannula for all superficial work</li>
+<li>Palpate for STA pulse before injection</li>
+</ul>`,
+products: `<b>Deep:</b> High G′, high cohesivity — Restylane Lyft, Teosyal RHA 4. <b>Superficial refinement:</b> More elastic gel for facial movement harmony.`,
+volumes: `MD Codes T1/T2: <b>0.5 mL/side</b>. Comprehensive midface treatment: up to <b>0.7 mL/side</b>. Minimum for cannula fanning: 0.5 mL/side.`,
+outcomes: "Restoration of smooth forehead-to-cheekbone contour, improved bitemporal width, indirect brow lift and periorbital improvement, reduced 'tired/aged' appearance.",
+pearls: `<ul>
+<li><b>Undercorrection preferred</b> — zero tolerance for over-volumization</li>
+<li>Place index finger on temple hairline during injection as physical block to prevent filler migration under hair</li>
+<li>Red flags: pre-existing ptosis (can worsen), exophthalmos, bulging veins, unrealistic symmetry expectations</li>
+</ul>`
+},
+
+brow_ptosis: {
+title: "Brow Tail Ptosis / Upper Lid Sulcus",
+sequencePriority: 3,
+sequenceNote: "Addressed via temple volumization (T1/T2). Treat after midface foundation.",
+indications: "Deflation of ROOF compartment leading to brow tail descent. Deep upper eyelid sulcus from loss of temple/brow support.",
+targetCompartments: "<b>ROOF (retro-orbicularis oculi fat)</b> and <b>superficial temporal fat pad</b>.",
+howToReach: "Same as temple hollowing protocol — cannula approach targeting superficial temporal fat and ROOF. See Temple Hollowing card.",
+vessels: "Same as temple — STA, frontal branch of facial nerve. See Temple Hollowing card.",
+avoidance: "Same as temple. Thumb Rule and Pitanguy's line mapping.",
+products: "High G′, high cohesivity — Restylane Lyft, Teosyal RHA 4.",
+volumes: "0.5–0.7 mL per side (combined with temple treatment).",
+outcomes: "Subtle brow tail elevation, reduced upper lid hollowing, indirect improvement of eye bags and tear trough.",
+pearls: `<ul><li>Pre-existing muscular ptosis is a contraindication — filler can worsen it</li><li>Always part of temple treatment, not done in isolation</li></ul>`
+},
+
+tear_trough: {
+title: "Tear Trough / Nasojugal Groove",
+sequencePriority: 2,
+sequenceNote: "Treat midface deep compartments (medial SOOF, DMCF) FIRST to provide structural support. Direct tear trough treatment is a refinement step.",
+indications: "Nasojugal groove deepening from medial SOOF deflation, loss of deep structural support exposing orbicularis retaining ligament tethering. Infraorbital fat pad protrusion (eye bags) from inadequate deep support.",
+targetCompartments: `<b>Primary:</b> Medial SOOF (deep structural support). <b>Secondary:</b> Deep pyriform space (stalagmite support pattern). <b>Tertiary:</b> Direct tear trough (Tt1 — very conservative).`,
+howToReach: `<b>Medial SOOF (primary — see Medial SOOF card):</b>
+<ul>
+<li>RG point entry, 25G cannula at 60°, pinch-and-pull maneuver, advance to bone</li>
+</ul>
+<b>Pyriform space (stalagmite pattern):</b>
+<ul>
+<li>Vertical cannula injections through pyriform space create deep structural columns</li>
+<li>Entry: 1.5 cm inferolateral from alar base; steep 60–90° vector to bone</li>
+</ul>
+<b>Direct tear trough (Tt1):</b>
+<ul>
+<li>25G cannula in sub-orbicularis plane, microaliquots 0.05–0.1 mL</li>
+<li>Approach from lateral to medial to stay away from angular vessels</li>
+</ul>`,
+vessels: `<ul>
+<li><b>Palpebral branch of infraorbital artery (PIOA)</b> — traverses medial SOOF over periosteum</li>
+<li><b>Angular artery/vein</b> — medial boundary</li>
+<li><b>Infraorbital neurovascular bundle</b> — emerges at lid-cheek/nasojugal crease junction</li>
+</ul>`,
+avoidance: `<ul>
+<li>Blunt cannula strongly recommended</li>
+<li>Stay deep (supraperiosteal) for structural injections</li>
+<li>Avoid superficial injection into infraorbital malar fat (iatrogenic malar mounds)</li>
+<li>Stay lateral to Medial Vertical Reference initially</li>
+</ul>`,
+products: `<b>Deep support:</b> High G′ (Voluma, Teosyal Ultra Deep, RHA 4). <b>Direct tear trough:</b> Soft, low G′ — Redensity 2, Volbella, RHA 2.`,
+volumes: "Medial SOOF: 0.2–0.4 mL/side. Pyriform: 0.2 mL. Direct Tt1: 0.1–0.2 mL/side max (limit to avoid edema).",
+outcomes: "Smoother lid-cheek junction, reduced dark circles and hollowing, improved eye bag appearance, effacement of nasojugal groove.",
+pearls: `<ul>
+<li>Treat the <b>cause</b> (deep deflation) not the <b>symptom</b> (the groove)</li>
+<li>Direct tear trough injection alone without deep support → high risk of edema and Tyndall</li>
+<li>Schedule 2-week follow-up for assessment and possible top-up</li>
+</ul>`
+},
+
+pmg: {
+title: "Palpebromalar Groove (PMG)",
+sequencePriority: 2,
+sequenceNote: "Treat after midface deep compartments are supported. PMG is the lateral continuation of the tear trough.",
+indications: "Visible skin groove from cutaneous insertion of inferior-lateral portion of orbicularis retaining ligament (ORL). Aging weakens ORL + SOOF/malar fat atrophy reveals the ligament.",
+targetCompartments: "<b>Phase 1:</b> Prezygomatic space + lateral SOOF (deep structural support). <b>Phase 2:</b> Direct PMG volumization (Tt2 — lateral infraorbital point).",
+howToReach: `<b>Phase 1 — Deep support:</b>
+<ul>
+<li>Entry: 1.5 cm inferolateral to lateral canthus OR inferolateral to ZCL insertion</li>
+<li>25G cannula into deep sub-orbicularis plane (pre-periosteal)</li>
+<li>Feel for "pop" entering prezygomatic space capsule</li>
+<li>Deposit 0.4–0.6 mL along upper maxilla</li>
+</ul>
+<b>Phase 2 — Direct PMG (Three-Point Tangent):</b>
+<ul>
+<li>"Third tangent" follows PMG superolaterally to ~2 cm lateral to lateral canthus</li>
+<li>25G cannula in sub-orbicularis plane</li>
+<li>Retrograde linear threading or microaliquots bottom-up from periosteum</li>
+<li>Limit 0.1–0.2 mL/side for this segment</li>
+</ul>`,
+vessels: `<ul>
+<li><b>Zygomaticofacial artery and nerve</b> — transit through lateral SOOF</li>
+<li><b>Palpebral branch of infraorbital artery</b> — medial boundary</li>
+</ul>`,
+avoidance: `<ul>
+<li>Never inject superficially into infraorbital malar fat pad → iatrogenic malar bags</li>
+<li>Avoid multiple crisscross needle passes (risk hematoma/numbness from zygomaticofacial bundle)</li>
+<li>Animation test: smile after injection to check for "double fold" deformity</li>
+</ul>`,
+products: "<b>Deep:</b> Teosyal Ultra Deep, Voluma, RHA 4. <b>Direct PMG:</b> Volbella, RHA 2, Redensity 2 (malleable, less viscous).",
+volumes: "Deep prezygomatic: 0.4–0.6 mL. Direct PMG: 0.1–0.2 mL/side.",
+outcomes: "Smoothed lateral lid-cheek transition, effaced palpebromalar groove, restored structural support masking ORL tethering.",
+pearls: `<ul>
+<li>Filler in static preperiosteal plane (too deep) → "double fold" on animation. Target the dynamic prezygomatic space instead.</li>
+<li>Always animation test after injection</li>
+</ul>`
+},
+
+malar_mound: {
+title: "Malar Mounds / Festoons",
+sequencePriority: 2,
+sequenceNote: "NEVER inject the mound itself. Treat deep prezygomatic space to restore structural framework.",
+indications: "Localized bulge on upper cheek bounded by ORL (palpebromalar groove) superiorly and ZCL inferiorly. Can be iatrogenic (superficial filler), lymphatic (wet festoons/chronic edema), or structural (SOOF atrophy revealing ligamentous tethering).",
+targetCompartments: "<b>Deep prezygomatic space</b> — restores structural support framework that SOOF normally provides, masking the mound.",
+howToReach: "Same as prezygomatic space protocol. See Midface Deflation card. 25G cannula, entry inferolateral to lateral canthus, pinch-and-pull, 50–60° angle, feel for 'pop.'",
+vessels: "Largely exempt from major vessels within the space itself. Stay lateral to MVR.",
+avoidance: `<div class="safety"><b>CRITICAL:</b> NEVER inject superficially into the infraorbital malar fat pad. This blocks the single lymphatic drainage channel → persistent edema → worsens malar bags ("bee sting appearance").</div>`,
+products: "High G′ fillers deep only — Teosyal Ultra Deep, Voluma, RHA 4.",
+volumes: "0.4–0.6 mL in prezygomatic space.",
+outcomes: "Restored deep structural support masks visibility of ORL and ZCL ligaments, reduces mound prominence.",
+pearls: `<ul><li>If iatrogenic from prior superficial filler → consider hyaluronidase first</li><li>Wet festoons may need lymphatic drainage assessment, not just filler</li></ul>`
+},
+
+negative_vector: {
+title: "Negative Lower Eyelid Vector",
+sequencePriority: 2,
+sequenceNote: "Address via prezygomatic space augmentation as part of midface foundation.",
+indications: "Cheek does not provide enough support for lower lid in lateral profile view. Requires augmentation to improve profile and support lower eyelid structures.",
+targetCompartments: "<b>Prezygomatic space</b> — primary site for augmentation.",
+howToReach: "See Prezygomatic Space protocol under Midface Deflation card.",
+vessels: "Prezygomatic space is generally exempt from major vessels.",
+avoidance: "Stay deep to orbicularis oculi. Use cannula. Avoid superficial infraorbital fat pad.",
+products: "High G′ — Voluma, Teosyal Ultra Deep, RHA 4.",
+volumes: "0.4–0.6 mL prezygomatic space.",
+outcomes: "Improved lateral profile, better lower eyelid support, more positive vector appearance.",
+pearls: `<ul><li>Prezygomatic space changes shape during animation (trapezoidal → crescentoid) so result tracks naturally with expressions</li></ul>`
+},
+
+midface_deflation: {
+title: "Midface Deflation / Flat Cheek / Lost Ogee Curve",
+sequencePriority: 1,
+sequenceNote: "THIS IS THE FOUNDATION — treat FIRST before any lower face or periorbital work. 'Top-down structural logic.'",
+indications: "Malar deflation, flat cheek contour, lost Ogee curve, pseudo-ptosis from deep volume loss, descent of overlying superficial tissues.",
+targetCompartments: `Treatment requires a <b>multilayered approach</b>:
+<table>
+<tr><th>Layer</th><th>Compartment</th><th>Purpose</th></tr>
+<tr><td>Deep</td><td><b>Lateral SOOF</b></td><td>Zygomatic projection, malar prominence, deep structural pillar</td></tr>
+<tr><td>Deep</td><td><b>Medial SOOF</b></td><td>Anterior projection, tear trough support, lid-cheek junction</td></tr>
+<tr><td>Deep</td><td><b>DMCF</b></td><td>Anterior cheek projection, NLF fulcrum effect, V-deformity correction</td></tr>
+<tr><td>Deep</td><td><b>Prezygomatic space</b></td><td>Dynamic lateral projection, lid-cheek blurring correction</td></tr>
+<tr><td>Superficial</td><td><b>Superficial fat</b> (secondary)</td><td>Cheek turgor, Ogee curve refinement, surface depression correction</td></tr>
+</table>`,
+howToReach: `<h4>Lateral SOOF</h4>
+<b>Needle (27G, bevel-down, 90°):</b> Advance to zygomatic periosteum. Reflux maneuver. Deposit 0.2 mL bolus. No crisscross passes.<br>
+<b>Cannula (25G):</b> RG point entry (1–2 cm below orbital rim, vertical from lateral canthus). 23G introducer to bone. Pinch-and-pull. Insert at 60°. Feel for "pop" into prezygomatic space. Glide freely, not visible on skin. Deposit 0.2–0.4 mL bolus or fan 0.1–0.3 mL/track.
+
+<h4>Medial SOOF</h4>
+<b>Needle (27G, bevel-down, 90°):</b> Advance to maxillary periosteum. Withdraw 1–2 mm. Mandatory reflux. Deposit 0.2 mL bolus.<br>
+<b>Cannula (25G):</b> RG point or inferior port above nasojugal groove. 23G introducer to bone. Pinch-and-pull. 60° angle. "Pop" into sub-orbicularis plane. Deposit 0.2–0.4 mL.
+
+<h4>DMCF</h4>
+<b>Target:</b> Medial component — strictly medial to MVR (vertical line from medial pupillary border ≈ 2.6 cm lateral to alar crease).<br>
+<b>Technique:</b> Deep onto maxillary periosteum, posterior to levator labii superioris. Bevel-down. 0.2 mL boluses.
+
+<h4>Prezygomatic Space</h4>
+Entry: 1.5 cm inferolateral to lateral canthus. 25G cannula, 50–60° angle. Pinch-and-pull. "Pop" through prezygomatic capsule. Glide freely on upper maxilla. 0.4–0.6 mL retrograde threading or small boluses.
+
+<h4>Superficial Fat (secondary step)</h4>
+Same entry points. 30° angle for subcutaneous plane. Fanning technique 0.1–0.3 mL/track. Stretch skin with non-dominant hand. Treat lateral compartments first → medial. Blend broadly across compartments.`,
+vessels: `<h4>Lateral SOOF vessels:</h4>
+<ul>
+<li><b>Zygomaticofacial neurovascular bundle</b> — directly within lateral SOOF</li>
+<li><b>Transverse facial artery</b> — main vessel at zygomatic arch; superior branch in subcutaneous tissue of lower MiCF</li>
+<li>Zygomatic and buccal branches of facial nerve nearby</li>
+</ul>
+<h4>Medial SOOF vessels:</h4>
+<ul>
+<li><b>Palpebral branch of infraorbital artery (PIOA)</b> — traverses over periosteum through medial SOOF; partitions medial/lateral SOOF</li>
+<li>Located ~half eye width from medial canthus (between pupil and medial corneal limbus)</li>
+</ul>
+<h4>DMCF vessels:</h4>
+<ul>
+<li><b>Infraorbital artery</b> branches (palpebral, nasal, labial) — nasal and labial branches within DMCF</li>
+<li><b>Facial vein</b> — borders DMCF medially/inferiorly, runs along midcheek groove</li>
+<li><b>Facial artery</b> — variable; 30% have infraorbital trunk ascending toward nasojugal groove</li>
+<li><b>Angular artery</b> — courses through roof of deep pyriform space between pyriform and DMCF</li>
+<li><b>MVR × UMP intersection</b> = upper malar adverse event zone (palpebral branch location)</li>
+</ul>`,
+avoidance: `<ul>
+<li><b>DMCF:</b> Stay medial to MVR (medial pupillary border line). Lateral = buccal fat recess → inadvertent jowling</li>
+<li><b>DMCF:</b> Bevel-down to direct filler toward bone</li>
+<li><b>DMCF:</b> No sharp needles at MVR × UMP intersection (upper malar adverse event zone)</li>
+<li><b>Lateral SOOF:</b> Bevel-down. No crisscross passes. Use cannula preferred</li>
+<li><b>Medial SOOF:</b> Cannula strongly recommended due to PIOA</li>
+<li><b>Superficial:</b> NEVER inject superficially into infraorbital malar fat pad (malar mound) → blocks lymphatics → persistent edema</li>
+<li><b>Superficial:</b> Do NOT directly treat nasolabial fat compartment (inflates with age)</li>
+<li><b>Superficial:</b> Stay above midcheek groove line to avoid facial vein and infraorbital artery branches</li>
+</ul>`,
+products: `<b>Deep (all compartments):</b> High G′, high cohesivity — Voluma, Teosyal Ultra Deep, Restylane Lyft, RHA 4.<br>
+<b>Superficial:</b> Malleable, high stretch — RHA 2/3/4 (based on skin thickness), Restylane Contour. NEVER rigid fillers superficially.`,
+volumes: `<table>
+<tr><th>Compartment</th><th>Volume/side</th></tr>
+<tr><td>Lateral SOOF</td><td>0.2–0.4 mL (up to 0.6 mL severe cases)</td></tr>
+<tr><td>Medial SOOF</td><td>0.2–0.4 mL</td></tr>
+<tr><td>DMCF</td><td>0.2 mL boluses, total based on deficit</td></tr>
+<tr><td>Prezygomatic space</td><td>0.4–0.6 mL</td></tr>
+<tr><td>Superficial fat (if needed)</td><td>0.1–0.3 mL/track, fanning</td></tr>
+</table>`,
+outcomes: "Restored Ogee curve, improved anterior and lateral cheek projection, lifted midface reducing pseudo-ptosis, smoother lid-cheek transition, reduced NLF depth indirectly.",
+pearls: `<ul>
+<li>Deep first → reassess during animation → superficial only if needed</li>
+<li><b>Pinch-and-pull test:</b> Slow skin rebound = superficial fat loss, poor elasticity</li>
+<li><b>Animation test:</b> Have patient smile after deep injections; if shadows/creasing persist, proceed to superficial</li>
+<li>Male patients: avoid high lateral SOOF volumes (feminizing); keep treatment more inferomedial</li>
+<li>V-deformity = deep (DMCF deflation). Malar mound = superficial (infraorbital fat). Different treatments!</li>
+</ul>`
+},
+
+lid_cheek_blurring: {
+title: "Lid-Cheek Junction Blurring / V-Deformity",
+sequencePriority: 2,
+sequenceNote: "Caused by DMCF + medial SOOF deflation. Treat midface deep compartments.",
+indications: "Vertical elongation of lower eyelid creating V-shaped deformity. Hollowed lid-cheek junction from loss of deep anterior projection.",
+targetCompartments: "<b>DMCF</b> (anterior projection) + <b>Medial SOOF</b> + <b>Prezygomatic space</b> (dynamic lateral projection).",
+howToReach: "See Midface Deflation card for DMCF, Medial SOOF, and Prezygomatic space techniques.",
+vessels: "See Midface Deflation card.",
+avoidance: "See Midface Deflation card. Key: stay medial to MVR for DMCF, bevel-down, cannula for SOOF.",
+products: "High G′ deep — Voluma, Teosyal Ultra Deep, RHA 4.",
+volumes: "DMCF: 0.2 mL boluses. Medial SOOF: 0.2–0.4 mL. Prezygomatic: 0.4–0.6 mL.",
+outcomes: "Smoother lid-cheek transition, corrected V-deformity, restored anterior midface projection.",
+pearls: `<ul><li>V-deformity is a <b>deep</b> problem (DMCF). Do not confuse with malar mounds (superficial).</li></ul>`
+},
+
+midcheek_groove: {
+title: "Midcheek Groove ('Indian Bands')",
+sequencePriority: 2,
+sequenceNote: "Treat deep compartments first (SOOF, DMCF). Superficial fat as secondary refinement.",
+indications: "Visible grooves from fat atrophy revealing underlying zygomaticocutaneous ligaments (ZCL). Results from both deep SOOF deflation and superficial fat loss.",
+targetCompartments: "<b>Deep:</b> Lateral SOOF + Medial SOOF + Prezygomatic space (to mask ligament tethering). <b>Superficial:</b> Fanning across compartments to restore smooth convexity.",
+howToReach: "See Midface Deflation card for all techniques.",
+vessels: "See Midface Deflation card.",
+avoidance: "See Midface Deflation card. Stay above midcheek groove line for superficial work.",
+products: "Deep: High G′. Superficial: malleable, high stretch (RHA collection).",
+volumes: "Per Midface Deflation card compartment volumes.",
+outcomes: "Masked ligamentous tethering, restored smooth cheek contour, reduced visible grooves.",
+pearls: `<ul><li>Deep support first creates 'tentpoles' → reassess → superficial 'canopy' if needed</li></ul>`
+},
+
+scleral_show: {
+title: "Scleral Show",
+sequencePriority: 2,
+sequenceNote: "Address via lateral SOOF augmentation.",
+indications: "Inadequate cheek support for lower eyelid structures exposing sclera below iris.",
+targetCompartments: "<b>Lateral SOOF</b> — provides better lower eyelid support.",
+howToReach: "See Lateral SOOF technique under Midface Deflation card.",
+vessels: "Zygomaticofacial bundle, transverse facial artery.",
+avoidance: "Bevel-down, cannula preferred, no crisscross passes.",
+products: "High G′ — RHA 4, Voluma, Teosyal Ultra Deep.",
+volumes: "0.2–0.4 mL lateral SOOF per side.",
+outcomes: "Diminished scleral show, improved lower eyelid support and lateral lid fullness.",
+pearls: `<ul><li>Also improves lateral third of lower lid fullness and smooths lid-cheek transition</li></ul>`
+},
+
+nlf: {
+title: "Nasolabial Folds (NLF)",
+sequencePriority: 2,
+sequenceNote: "NEVER fill the fold directly first. Treat deep midface deflation (DMCF, pyriform) to address the CAUSE. Superficial NLF refinement is last step.",
+indications: "Deepening of cheek-lip boundary fold from bone resorption, DMCF atrophy, medial/inferior shift of superficial fat. NLF fat pad itself often INFLATES with age (paradox).",
+targetCompartments: `<table>
+<tr><th>Step</th><th>Target</th><th>Purpose</th></tr>
+<tr><td>1. Lifting</td><td>Zygomatic arch (Ck1) + eminence (Ck2)</td><td>Tighten medial midface, indirect NLF lift</td></tr>
+<tr><td>2. Supporting</td><td>DMCF (medial component)</td><td>Fulcrum effect on lip elevators → efface fold from deep</td></tr>
+<tr><td>3. Pyriform</td><td>Deep pyriform space</td><td>Support alar base, fill deep shadow at top of NLF</td></tr>
+<tr><td>4. Refinement</td><td>Subcutaneous above fold (optional)</td><td>Only if fold persists after deep treatment</td></tr>
+</table>`,
+howToReach: `<b>Step 1 (Ck1/Ck2):</b> Small boluses 0.1–0.2 mL on periosteum with 27G needle.<br>
+<b>Step 2 (DMCF):</b> Deep on maxillary bone, medial to MVR, posterior to levator labii superioris. See DMCF technique in Midface card.<br>
+<b>Step 3 (Pyriform):</b> Needle 90° to bone OR cannula at 60–90° steep vector. Entry 1.5 cm inferolateral from alar base. Bolus 0.2 mL on anterior maxilla.<br>
+<b>Step 4 (Optional superficial):</b> Fanning technique with malleable filler only if fold persists.`,
+vessels: `<ul>
+<li><b>Facial artery</b> — runs along NLF, highly variable; deep in lower third, becomes superficial in midface</li>
+<li><b>Angular artery</b> — near alar base, relatively superficial in pyriform area → strict bone contact required</li>
+</ul>`,
+avoidance: `<ul>
+<li><b>Push Test:</b> Push anteromedial cheek upward — if NLF smooths, patient benefits from deep volumization over direct fold injection</li>
+<li>Never inject NLF directly if it adds weight to lower face → treat the cause (deep deflation)</li>
+<li>Do NOT inject nasolabial fat pad directly (it inflates with age)</li>
+<li>Mark Expert2expert 3-lines: vertical facial line, zygomatic line, midcheek groove line</li>
+<li>Do not inject medial to midcheek groove line (overfills NLF fat pad)</li>
+</ul>`,
+products: "<b>Deep/foundational:</b> Voluma, Teosyal Ultra Deep, Restylane Lyft. <b>Superficial refinement:</b> RHA 3, RHA 4.",
+volumes: "Ck1/Ck2: 0.1–0.2 mL/bolus. DMCF: 0.2 mL boluses. Pyriform: 0.2 mL. Superficial: as needed.",
+outcomes: "Effacement of NLF from deep structural lift rather than superficial filling. Natural result during animation.",
+pearls: `<ul>
+<li><b>The Push Test</b> is your key diagnostic tool</li>
+<li>Dynamic evaluation: assess during full smile to avoid animation deformity</li>
+<li>Treat the problem (deep deflation) not the symptom (the fold)</li>
+</ul>`
+},
+
+pyriform_depression: {
+title: "Pyriform Depression / Alar Base Retrusion",
+sequencePriority: 2,
+sequenceNote: "Treat as part of anterior midface foundation, alongside DMCF.",
+indications: "Maxillary bone retrusion affecting pyriform angles. Loss of alar base support. Deep shadow at top of NLF. Often treated alongside medial DMCF for anterior cheek projection.",
+targetCompartments: "<b>Deep pyriform space</b> — soft triangle lateral to ala of nose, deep on anterior maxilla.",
+howToReach: `<b>Needle (27G, 90° perpendicular):</b>
+<ul>
+<li>Advance until tip touches bone (maxillary periosteum)</li>
+<li>Angular artery is superficial here → strict bone contact = safe</li>
+<li>Bolus 0.2 mL</li>
+</ul>
+<b>Cannula approach:</b>
+<ul>
+<li><b>Lower entry (preferred):</b> 1.5 cm inferolateral from alar base in nasolabial crease</li>
+<li><b>Lateral entry (RG point):</b> 1–2 cm below orbital rim on vertical from lateral canthus; redirect anteromedially in deep plane</li>
+<li>Angle: <b>60–90° steep vector</b> to reach deep pyriform (30° = premaxillary space instead)</li>
+<li>Confirmation: <b>perceptible free passage</b> = correct space. Resistance = you're in DMCF fatty tissue</li>
+</ul>`,
+vessels: `<ul>
+<li><b>Angular artery</b> — traverses lateral and superficial to the space; NOT preperiosteal at this level</li>
+<li>Safe zone for deep volumization provided strict bone contact maintained</li>
+</ul>`,
+avoidance: `<ul>
+<li>Filler MUST be on anterior maxilla (periosteum)</li>
+<li>Angular artery is superficial → staying deep on bone avoids it</li>
+<li>Steep vector (60–90°) ensures proper depth; shallow angle enters wrong space</li>
+</ul>`,
+products: "High G′, structural — Voluma, Teosyal Ultra Deep, Restylane Lyft, Radiesse.",
+volumes: "~0.2 mL bolus per side.",
+outcomes: "Supported alar base, effaced deep shadow at NLF origin, improved anterior midface projection, fulcrum effect on lip elevators helping smooth NLF.",
+pearls: `<ul>
+<li>Fulcrum effect: volumizing pyriform decreases the 'moment arm' of lip elevators → elevates and smooths NLF from deep plane</li>
+<li>Often combined with medial DMCF for comprehensive anterior projection</li>
+</ul>`
+},
+
+lip_volume: {
+title: "Lip Volume Loss / Thin Lips",
+sequencePriority: 4,
+sequenceNote: "Treat after midface foundation and perioral structural support. Assess skeletal support (ROOrF) before direct lip augmentation.",
+indications: "MLFS score 1–2 (very thin/thin). Elongated prolabium with loss of visible vermilion height. Loss of tubercle definition. Target ratio upper:lower = 1:1.6 (adjust for ethnicity).",
+targetCompartments: `Systematic sequence:
+<ol>
+<li><b>ROOrF</b> (if skeletal deficit) — deep fibrofatty compartment over canine fossa</li>
+<li><b>White roll</b> — border definition (subdermal/superficial subcutaneous)</li>
+<li><b>Philtral columns</b> — intradermal/subdermal</li>
+<li><b>Vermilion body</b> — superficial lip compartment (deep to dry vermilion mucosa, superficial to OOM)</li>
+<li><b>Tubercles</b> — central and lateral</li>
+<li><b>G-K point</b> — highest point of Cupid's bow</li>
+</ol>`,
+howToReach: `<b>ROOrF:</b> Port in central philtrum at upper 1/3 of philtral height. Cannula anterior→posterior then angulate laterally, deep to OOM. 0.4 mL/side (2:1 HA:lidocaine blend).<br><br>
+<b>White Roll:</b> 30G needle, "pinch technique" (lift tissue away from SLA branches). Inject commissure to commissure, deposit on withdrawal. Subdermal plane.<br><br>
+<b>Philtral Columns:</b> Needle preferred. Inject just medial to columns in retrograde pattern. Intradermal/subdermal.<br><br>
+<b>Vermilion (Needle):</b> "No-touch" vertical technique. Parallel injections at 1.5–2 mm increments in central 3/4. Plane: immediately deep to dry vermilion mucosa, superficial to OOM. Feel "safe harbor" = minimal resistance. If needle is "gripped" → you're in OOM, too deep.<br><br>
+<b>Vermilion (Cannula):</b> Port lateral to commissure. Submucosal/intramuscular plane. May feel 2–4 septal "speed bumps."<br><br>
+<b>Tubercles:</b> 3–4 vertical vectors for inferior tubercles, central slightly higher. MV technique for eversion.<br><br>
+<b>G-K Point:</b> Small microbolus at highest point of Cupid's bow.`,
+vessels: `<ul>
+<li><b>Superior Labial Artery (SLA)</b> — deep within lip (between OOM and oral mucosa). Depth ≥3–4 mm from skin surface. 1 mm inferior to cutaneous vermilion border at Cupid's bow peak. 85% have septal branch ascending toward nose; 25% run superficial to muscle → nasal tip/alar loss risk</li>
+<li><b>Inferior Labial Artery (ILA)</b> — branches from facial artery ~1.5 cm inferior to lower lip. Deep mucosal/submucosal plane. Sends vertical branches toward red vermilion</li>
+<li><b>SLA/ILA takeoff:</b> Within 1.5 cm² area from oral commissure at ~3.5 mm depth. Use thumbnail at commissure to estimate zone</li>
+</ul>`,
+avoidance: `<div class="safety"><b>CRITICAL ANGULATION RULES:</b>
+<ul>
+<li><b>Upper lip:</b> NEVER angulate needle posterosuperiorly → aims directly into SLA zone</li>
+<li><b>Lower lip:</b> NEVER angulate posteroinferiorly → hits ILA vertical branches</li>
+<li>Keep needle superficial (anterior) to OOM — the "safe harbor"</li>
+<li>Always aspirate ≥3 seconds each insertion</li>
+<li>"Pinch technique" for white roll lifts tissue away from ascending SLA branches</li>
+</ul></div>`,
+products: `<table>
+<tr><th>Zone</th><th>Product</th><th>Rationale</th></tr>
+<tr><td>ROOrF</td><td>Blended HA (2:1 filler:lido)</td><td>Structural shelf</td></tr>
+<tr><td>Philtral columns</td><td>Voluma</td><td>Structural support to narrow/define</td></tr>
+<tr><td>White roll/border</td><td>Restylane Silk</td><td>High G′ for precise border definition</td></tr>
+<tr><td>Vermilion bulk</td><td>Voluma, Juvéderm Ultra</td><td>Shape and projection</td></tr>
+<tr><td>Subvermilion sheeting</td><td>Restylane Silk, Volbella</td><td>Erase fine reticulated lines</td></tr>
+<tr><td>Texture/hydration only</td><td>Volbella</td><td>Low G′, no lumps</td></tr>
+</table>`,
+volumes: "ROOrF: 0.4 mL/side. White roll + philtral: per clinical need. Vermilion: varies by MLFS score and goal.",
+outcomes: "Restored vermilion height and volume, defined borders, natural tubercle interlock, improved incisor show, harmonized lip proportions.",
+pearls: `<ul>
+<li>Always define white roll BEFORE vermilion (border gets obscured after volume)</li>
+<li>Check for filler migration in ergotrid area (palpate) — may need hyaluronidase first</li>
+<li>Rheology matters: P-HA (Restylane) = sharp edges/definition; NP-HA (Juvéderm) = integration/molding but can blur borders</li>
+<li>Monitor 1 hour post-injection for vascular side effects</li>
+</ul>`
+},
+
+vermilion_border: {
+title: "Vermilion Border Effacement",
+sequencePriority: 4,
+sequenceNote: "Part of lip treatment sequence. Define border before filling body.",
+indications: "Dimmed or effaced vermilion border contributing to flaccid lip appearance. Often first sign of lip aging.",
+targetCompartments: "<b>White roll</b> — subdermal/superficial subcutaneous plane along the lip border.",
+howToReach: "30G needle, 'pinch technique.' Inject from commissure to commissure in subdermal plane, deposit on withdrawal. See Lip Volume card.",
+vessels: "SLA ascending branches — pinch technique lifts tissue away from them.",
+avoidance: "Pinch technique. Stay subdermal. Aspirate near commissure (SLA/ILA takeoff within 1.5 cm²).",
+products: "Restylane Silk (precise border definition, high G′).",
+volumes: "Per clinical need — small amounts along border.",
+outcomes: "Sharp, defined vermilion border. Can efface mild barcode lines by tensioning tissue.",
+pearls: `<ul><li>Border definition before volume — always</li><li>If gray needle color visible → too superficial → Tyndall effect risk</li></ul>`
+},
+
+philtral_columns: {
+title: "Philtral Column Splaying",
+sequencePriority: 4,
+sequenceNote: "Part of lip architecture phase.",
+indications: "Splayed philtral columns at base — aging sign. Loss of narrow, youthful philtral definition.",
+targetCompartments: "<b>Just medial to each philtral column</b> — intradermal/subdermal plane.",
+howToReach: "Needle preferred over cannula (requires proprioception + sight). Retrograde injection pattern just medial to splayed columns to narrow them.",
+vessels: "SLA septal branches — 85% have septal branch, 25% superficial to muscle. Exercise extreme caution near philtral columns.",
+avoidance: "Stay subdermal. Do not angle posterosuperiorly. Aspirate.",
+products: "Voluma (high viscosity for structural narrowing/definition).",
+volumes: "Small amounts per clinical need.",
+outcomes: "Narrowed, defined philtral columns restoring youthful upper lip architecture.",
+pearls: `<ul><li>Inject medial to the column to narrow, not lateral</li></ul>`
+},
+
+cupids_bow: {
+title: "Cupid's Bow Flattening",
+sequencePriority: 4,
+sequenceNote: "Refinement step within lip treatment.",
+indications: "Loss of definition at Glogau-Klein (G-K) point — highest peak of Cupid's bow.",
+targetCompartments: "<b>G-K point</b> — small microbolus at Cupid's bow peak.",
+howToReach: "Fine needle, small microbolus at the highest point of Cupid's bow to enhance peak and curvature.",
+vessels: "SLA — 1 mm inferior to cutaneous vermilion border at Cupid's bow peak.",
+avoidance: "Stay superficial (subdermal). Aspirate. Never posterosuperior angulation.",
+products: "Restylane Silk or Volbella.",
+volumes: "Microbolus — very small amount.",
+outcomes: "Enhanced Cupid's bow peak, improved lip definition and curvature.",
+pearls: `<ul><li>Part of MV technique topographic refinement phase</li></ul>`
+},
+
+lip_inversion: {
+title: "Lip Inversion / Loss of Incisor Show",
+sequencePriority: 4,
+sequenceNote: "Check for skeletal deficit (ROOrF indication) first.",
+indications: "Loss of upper incisor display during speech. Inward rolling of vermilion. Often from skeletal collapse or orbicularis tightening.",
+targetCompartments: "<b>ROOrF</b> (if skeletal deficit) → <b>Vermilion body</b> (eversion techniques).",
+howToReach: "ROOrF: port at upper 1/3 philtrum, cannula deep to OOM (see Lip Volume card). Vermilion: MV technique with vertical vectors over tubercles for eversion and increased visible height.",
+vessels: "SLA/ILA — see Lip Volume card.",
+avoidance: "See Lip Volume card safety rules.",
+products: "ROOrF: blended HA. Vermilion: Voluma/Ultra for eversion.",
+volumes: "ROOrF: 0.4 mL/side. Vermilion: per clinical need.",
+outcomes: "Improved incisor show, lip eversion, restored 'hockey stick' forward curve of OOM.",
+pearls: `<ul><li>"Natural Volumized Lips" technique = "flat lips" result focusing on vertical height and eversion with minimal forward projection</li></ul>`
+},
+
+roorf_deficit: {
+title: "Upper Lip Skeletal Deficit (ROOrF Indication)",
+sequencePriority: 4,
+sequenceNote: "Assess BEFORE any lip filler. If present, treat ROOrF first as structural foundation.",
+indications: "Upper alveolar collapse (post-bicuspid extraction), pyriform aperture retrusion, Angle's Class II occlusion, decreased A-P dimension on profile, elongated prolabium, loss of 'hockey stick' forward curve of OOM.",
+targetCompartments: "<b>Retro-Orbicularis Oris Fat (ROOrF)</b> — deep fibrofatty compartment over canine fossa, deep to orbicularis oris muscle.",
+howToReach: `<ul>
+<li><b>Port:</b> Central philtrum at junction of upper 1/3 of philtral height</li>
+<li><b>Technique:</b> Cannula anterior→posterior, then angulate laterally</li>
+<li><b>Plane:</b> Deep to OOM, on anterior side of upper lip mucosa</li>
+<li><b>Confirmation:</b> Minimal resistance in this potential space</li>
+<li><b>Volume:</b> 0.4 mL of blended HA (2:1 filler:lidocaine) per side</li>
+</ul>`,
+vessels: "SLA runs deep between OOM and oral mucosa — cannula deep to OOM accesses ROOrF safely.",
+avoidance: "Stay deep to muscle. Cannula approach preferred for safety.",
+products: "Blended HA filler (2:1 filler:lidocaine ratio).",
+volumes: "0.4 mL per side.",
+outcomes: "Re-established structural 'shelf,' broadened dental arch appearance, shortened prolabium appearance, natural lip eversion without 'duck lip.'",
+pearls: `<ul>
+<li>Filling red lip alone without ROOrF support = "inferior and short-lived results"</li>
+<li>This is the structural root cause treatment for the collapsed upper lip</li>
+</ul>`
+},
+
+barcode_lines: {
+title: "Perioral Barcode Lines (Smoker Lines)",
+sequencePriority: 4,
+sequenceNote: "Treat after midface and lip structural support. Neuromodulator foundation recommended first.",
+indications: "Vertical perioral rhytids from orbicularis oris contraction and superficial fat compartment atrophy. Classify: dynamic (visible on pouting/whistling only) vs static (etched at rest). Mild = border effacement. Deep = dermal etching + volume loss.",
+targetCompartments: `Sequential:
+<ol>
+<li><b>Orbicularis oris</b> — neuromodulator (relaxation phase)</li>
+<li><b>White roll / vermilion border</b> — border tensioning</li>
+<li><b>Individual rhytids</b> — intradermal crosshatching</li>
+<li><b>Ergotrid zone</b> — subcutaneous cutaneous lip</li>
+<li><b>Subvermilion</b> — if lines extend into red lip</li>
+</ol>`,
+howToReach: `<b>Step 1 (Neuromodulator):</b> 4 Units OnabotulinumtoxinA divided into 8 equidistant circumferential points around OOM.<br><br>
+<b>Step 2 (White Roll / Border Tensioning):</b> Inject vermilion border in dermal-subdermal plane. Accentuates white roll, physically stretches tissue, can efface mild lines without direct injection.<br><br>
+<b>Step 3 (Intradermal Crosshatching):</b> 32G needle, direct intradermal crosshatching into each wrinkle. Must stay in reticular dermis. If you see gray needle color → too superficial → Tyndall risk.<br><br>
+<b>Step 4 (Ergotrid Zone / MV Technique):</b> Lateral vectors in fan pattern into subcutaneous plane of cutaneous lip. Creates resistance layer against muscle contraction → "braces" skin.<br><br>
+<b>Step 5 (Subvermilion Sheeting):</b> Shallow fanning with low-viscosity filler to erase reticulated lines extending into red lip.`,
+vessels: `<ul>
+<li><b>SLA septal branches</b> — in 85% of cases; 25% run superficial to muscle near philtral columns</li>
+<li>Embolization risk → catastrophic nasal tip or alar loss</li>
+</ul>`,
+avoidance: `<ul>
+<li>Extreme caution near philtral columns</li>
+<li>Stay in reticular dermis for crosshatching (not too superficial, not too deep)</li>
+<li>Aspirate at every insertion</li>
+</ul>`,
+products: `<b>Crosshatching / border:</b> Volbella (low G′, hydration/softening) or Restylane Silk (precise definition).<br>
+<b>Consultant's tip:</b> Transfer particulate HA into 1 mL Luer-Lock syringe before injecting — breaks particles into smaller, more injectable size for maximum smoothness.`,
+volumes: "Per clinical need — small amounts per rhytid.",
+outcomes: "Comprehensive perioral rejuvenation: relaxed dynamic forces + effaced static lines + restored volume + smooth transitions.",
+pearls: `<ul>
+<li>Never treat static lines with filler alone — orbicularis "milking" causes clumping/migration</li>
+<li>Neuromodulator foundation significantly augments filler longevity and smoothness</li>
+<li>2-week follow-up for symmetry assessment and top-up</li>
+</ul>`
+},
+
+oral_commissure: {
+title: "Oral Commissure Ptosis (Downturned Corners)",
+sequencePriority: 4,
+sequenceNote: "Treat midface first if significant lower face sagging. Mark injection points seated upright (landmarks change when supine).",
+indications: "Downturned mouth corners creating 'sad/grumpy' appearance. Driven by hyperactive DAO pull + volumetric loss.",
+targetCompartments: `5-phase approach:
+<ol>
+<li><b>DAO muscle</b> — neuromodulator relaxation</li>
+<li><b>Caudal orbicularis oris</b> — superficial HA strut</li>
+<li><b>Above lateral red lip</b> — structural strut maneuver</li>
+<li><b>Sub-DAO space / deep lateral chin compartment</b> — deep support</li>
+<li><b>Lateral triangles (MV technique)</b> — triangular reflation outside vermilion at mouth corners</li>
+</ol>`,
+howToReach: `<b>Phase 2 (DAO Neuromodulator):</b>
+<ul>
+<li>"Lorenc Protocol": midpoint of vertical line between oral commissure and jaw angle, then 1.0 cm lateral</li>
+<li>Dose: 2.5U IncobotulinumtoxinA or 4U OnabotulinumtoxinA per side</li>
+<li>Immediately massage medial→lateral to prevent DLI spread (→ lower lip asymmetry/oral incompetence)</li>
+</ul>
+<b>Phase 4 (Filler Maneuvers):</b>
+<ul>
+<li><b>Caudal orbicularis support:</b> HA superficially into caudal aspect of OOM, ~5 mm lateral to commissure → creates illusion of upturned commissure</li>
+<li><b>"Strut" maneuver:</b> Anterograde injection with high G′ filler above lateral red lip</li>
+<li><b>Sub-DAO space (cannula):</b> Port along inferior mandibular border at parasagittal midline. Advance cephalically in sub-DAO plane (between bone and DAO muscle). Very little resistance in this potential space</li>
+<li><b>Triangular reflation (MV):</b> 2–3 linear retrograde injections fanning pattern into lateral triangles outside vermilion at mouth corners</li>
+</ul>
+<b>Phase 5 (Oral Competence):</b> Medial→lateral injection at and just posterior to white roll of both upper and lower lip commissures.`,
+vessels: `<ul>
+<li><b>SLA/ILA takeoff zone</b> — within 1.5 cm² area from oral commissure at ~3.5 mm depth</li>
+<li>Aspirate ≥3 seconds when near commissure</li>
+</ul>`,
+avoidance: `<ul>
+<li>Aspirate ≥3 seconds near commissure</li>
+<li>Massage DAO toxin medial→lateral (prevent DLI spread)</li>
+<li>Mark points seated upright</li>
+<li>Avoid overcorrection — commissure anatomy is tightly bound, excess volume looks unnatural on animation</li>
+</ul>`,
+products: "Voluma or Restylane Lyft (high G′, high lifting capacity). Low-viscosity fillers lack needed 'strut work.'",
+volumes: "Per clinical need. Goal: full correction to 100% but no overcorrection.",
+outcomes: "Elevated mouth corners, eliminated 'sad' appearance, improved oral competence, smooth commissure-to-cheek transition.",
+pearls: `<ul>
+<li>Use ultrasound gel post-injection to blend</li>
+<li>Full correction to 100% is the goal but overcorrection → unnatural on animation</li>
+</ul>`
+},
+
+gummy_smile: {
+title: "Gummy Smile Reduction",
+sequencePriority: 4,
+sequenceNote: "Assess as part of lip examination. Often addressed with neuromodulator + strategic filler.",
+indications: "Excessive gingival show during smile. Can be improved with carefully placed filler and/or neuromodulator to lip elevators.",
+targetCompartments: "Lip elevator muscles (neuromodulator) + vermilion body (filler for increased lip coverage).",
+howToReach: "Neuromodulator to LLSAN (levator labii superioris alaeque nasi) or lip elevator complex. Vermilion augmentation to increase lip drop over gingiva.",
+vessels: "SLA branches — standard lip safety precautions.",
+avoidance: "Standard lip safety. Conservative neurotoxin dosing to avoid lip ptosis.",
+products: "Neuromodulator + lip filler per lip volume protocol.",
+volumes: "Conservative neurotoxin (2–4U per side). Lip filler per clinical need.",
+outcomes: "Reduced gingival display, improved lip-to-gum ratio during smile.",
+pearls: `<ul><li>Combine with lip augmentation for best results — increases vermilion coverage while reducing elevator pull</li></ul>`
+},
+
+marionette_lines: {
+title: "Marionette Lines (Melomental Folds)",
+sequencePriority: 3,
+sequenceNote: "Treat midface FIRST (upward vectors reduce pseudoptosis driving marionette lines). Then address DAO + prejowl.",
+indications: "Deep folds from oral commissure to mandible. Driven by gravity-induced fat descent, DAO pull, and prejowl sulcus formation.",
+targetCompartments: "<b>Midface (primary cause)</b> → <b>DAO (neuromodulator)</b> → <b>Prejowl sulcus (C6)</b> → <b>Direct fold treatment (if persistent)</b>.",
+howToReach: "Midface: see Midface Deflation card. DAO: Lorenc Protocol (see Oral Commissure card). Prejowl: see Prejowl card. Direct fold: subcutaneous fanning with malleable filler only if persistent after structural treatment.",
+vessels: "Facial artery (variable along NLF), mental artery near chin.",
+avoidance: "Treat cause (midface deflation, DAO) before symptom (the fold). Avoid adding weight to lower face.",
+products: "Deep structural: Voluma, Restylane Lyft. Fold refinement: RHA 3/4.",
+volumes: "Per component protocols.",
+outcomes: "Reduced fold depth through structural midface lift and DAO relaxation rather than direct filling.",
+pearls: `<ul><li>Marionette lines are a symptom of midface volume loss and DAO hyperactivity — treat the cause</li></ul>`
+},
+
+chin_retrogenia: {
+title: "Retrogenia (Recessed Chin)",
+sequencePriority: 3,
+sequenceNote: "Treat midface first (Waldorf sequence). If mentalis strain present → neurotoxin 15 days before filler.",
+indications: "Lack of chin tip projection (Ricketts line assessment), aesthetic disharmony falsely accentuating mouth protrusion, age-related bone resorption (40–45+), mentalis strain/'cobblestone' texture, desire for V-line. Contraindications: severe sagging (adds weight/worsens), significant submental fat, active infection, uncorrected skeletal asymmetry.",
+targetCompartments: `<b>MD Codes 6-Point Reshape (C1→C6):</b>
+<table>
+<tr><th>Code</th><th>Target</th><th>Plane</th><th>Tool</th><th>Volume</th></tr>
+<tr><td>C1</td><td>Labiomental crease</td><td>Subcutaneous</td><td>Cannula (midline chin port)</td><td>0.5 mL (0.7 if + C2)</td></tr>
+<tr><td>C2</td><td>Chin apex</td><td>Subq or supraperiosteal (midline)</td><td>Cannula or needle</td><td>0.3 mL</td></tr>
+<tr><td>C3</td><td>Anterior chin (pogonion)</td><td>Supraperiosteal</td><td>Needle 27G</td><td>0.3 mL</td></tr>
+<tr><td>C4</td><td>Submental (menton)</td><td>Subcutaneous (midline)</td><td>Needle</td><td>0.3 mL</td></tr>
+<tr><td>C5</td><td>Lateral lower chin</td><td>Supraperiosteal</td><td>Needle</td><td>0.3 mL (mainly males)</td></tr>
+<tr><td>C6</td><td>Prejowl sulcus</td><td>Subcutaneous</td><td>Cannula 25G</td><td>0.5 mL</td></tr>
+</table>`,
+howToReach: `<b>Sequence: C1 first → C2/C3/C4 (structural) → C5/C6 last (blending).</b><br><br>
+<b>C1 (Cannula):</b> Midline chin port. Subcutaneous plane over mentalis insertion and posterior OOM.<br>
+<b>C2 (Needle/Cannula):</b> Supraperiosteal midline depot or subcutaneous cannula.<br>
+<b>C3 (Needle 27G):</b> Supraperiosteal depot at soft tissue pogonion. Aspiration mandatory. Not too lateral (mental artery).<br>
+<b>C4 (Needle):</b> Subcutaneous midline at lowest chin point.<br>
+<b>C5 (Needle):</b> Supraperiosteal lateral chin base. Mainly for males (square look). Avoid in females (→ over-square).<br>
+<b>C6 (Cannula 25G):</b> Port at inferior mandibular border, parasagittal midline. Advance cephalically in sub-DAO plane (between bone and DAO). Very little resistance = correct space.`,
+vessels: `<ul>
+<li><b>Mental foramen</b> — below 2nd premolar, midway mandibular body height. Avoid perpendicular deep injections here</li>
+<li><b>Mental artery</b> — exits mental foramen</li>
+<li><b>Facial artery</b> — 3 cm anterior to jaw angle at antegonial notch</li>
+</ul>`,
+avoidance: `<ul>
+<li>Aspirate ≥3 seconds every insertion, especially near mental foramen</li>
+<li>Mark facial midline to prevent asymmetry</li>
+<li>Avoid C5 overfilling in females (creates masculine square jaw)</li>
+<li>If tissue tension high → divide into 2–3 sessions for tissue expansion</li>
+<li>Severe skeletal retrogenia → refer for orthodontics/surgery, not just filler</li>
+</ul>`,
+products: "Hard filler with high viscoelasticity — Voluma, Radiesse. Soft fillers migrate in this high-tension area.",
+volumes: "Total: 2–4 mL for effective augmentation. Distribute per MD Codes table above. Case example: 2 mL conservative; full MD codes ~2.5 mL combined.",
+outcomes: "Restored chin projection and profile balance, corrected Ricketts line, harmonized lower face, smooth chin-to-jawline transition.",
+pearls: `<ul>
+<li>Mentalis pre-treatment with neurotoxin 15 days before if cobblestone/strain present</li>
+<li>C1 first (foundation) → C5/C6 last (blending/width)</li>
+<li>Three injection planes: supraperiosteal (projection), intramuscular (expansion), subcutaneous (contouring)</li>
+<li>Assess results during animation (smile, kiss, pout) — total absence of creasing required</li>
+</ul>`
+},
+
+mentalis_strain: {
+title: "Mentalis Strain / Chin Dimpling",
+sequencePriority: 3,
+sequenceNote: "Treat with neurotoxin 15 days BEFORE chin filler.",
+indications: "Hyperactive mentalis muscle causing 'cobblestone' or 'peau d'orange' chin texture. Common in Angle's Class II occlusion (compensatory closing mechanism).",
+targetCompartments: "<b>Mentalis muscle</b> (neuromodulator) → then <b>chin filler</b> (C1–C6 as needed).",
+howToReach: "Neurotoxin injection into mentalis muscle belly. Wait 15 days for full relaxation before proceeding with chin filler.",
+vessels: "Mental artery (exits mental foramen below 2nd premolar).",
+avoidance: "Aspirate. Avoid mental foramen area. Conservative dosing to maintain lip competence.",
+products: "Neurotoxin first (OnabotulinumtoxinA/IncobotulinumtoxinA). Then chin filler per retrogenia protocol.",
+volumes: "Neurotoxin per standard mentalis dosing. Filler per chin MD Codes.",
+outcomes: "Smooth chin skin texture, eliminated cobblestone/dimpling, better filler integration and longevity.",
+pearls: `<ul><li>If you don't relax the mentalis first, filler can migrate or look lumpy during animation</li></ul>`
+},
+
+labiomental_crease: {
+title: "Deep Labiomental Crease",
+sequencePriority: 3,
+sequenceNote: "C1 is the FIRST point in the chin MD Codes sequence.",
+indications: "Deep horizontal groove between lower lip and chin. Prevents 'witch chin' appearance when treated.",
+targetCompartments: "<b>C1 (Labiomental sulcus)</b> — subcutaneous plane over cephalic insertion of mentalis and posterior OOM.",
+howToReach: "Cannula from midline chin port. Subcutaneous plane. Alternatively, port at lateral extent of labiomental crease.",
+vessels: "Mental artery — stay midline for maximum safety.",
+avoidance: "Aspirate. Midline approach safest.",
+products: "Voluma or equivalent high viscoelasticity filler.",
+volumes: "0.5 mL (increase to 0.7 mL if also treating C2).",
+outcomes: "Softened labiomental crease, structural base layer for subsequent chin projection points.",
+pearls: `<ul><li>Always treat C1 first in chin sequence — it's the foundation before adding projection</li></ul>`
+},
+
+prejowl: {
+title: "Prejowl Sulcus",
+sequencePriority: 3,
+sequenceNote: "Treat midface first. Part of chin blending (C6) and jawline contouring. For moderate-severe sagging → filler contraindicated (adds weight, worsens drooping) → surgical candidate.",
+indications: "Furrow between chin and jowl from buccal fat droop while mandibular ligament remains fixed. Ideal candidate: 40–45 years with early sagging/small jowling. Contraindicated if moderate-severe sagging.",
+targetCompartments: `<b>MD Code C6.</b> Can be treated via:
+<ul>
+<li><b>Deep supraperiosteal</b> (needle — depot on bone at prejowl concavity)</li>
+<li><b>Deep lateral chin compartment / sub-DAO plane</b> (cannula)</li>
+<li><b>Superficial subcutaneous</b> (camouflage fanning)</li>
+</ul>`,
+howToReach: `<b>Deep Supraperiosteal (Needle 27G/29G):</b>
+<ul>
+<li>Inject perpendicularly directly onto bone in depot fashion</li>
+<li>Aspirate ≥3 seconds (mental and facial arteries nearby)</li>
+</ul>
+<b>Deep Lateral Chin Compartment (Cannula 25G):</b>
+<ul>
+<li>Port along inferior mandibular border at parasagittal midline</li>
+<li>Advance cephalically in <b>sub-DAO plane</b> (between bone and DAO muscle)</li>
+<li>Minimal resistance = correct potential space</li>
+</ul>
+<b>Superficial Camouflage:</b>
+<ul>
+<li>Subcutaneous fanning technique to blend jowl-chin transition</li>
+</ul>`,
+vessels: `<ul>
+<li><b>Facial artery</b> — 3 cm anterior to jaw angle at antegonial notch</li>
+<li><b>Mental artery</b> — exits below 2nd premolar</li>
+</ul>`,
+avoidance: `<ul>
+<li>Aspirate ≥3 seconds before every injection</li>
+<li>Palpate antegonial notch and mark facial artery path</li>
+<li>In thin patients: caution of filler visibility through buccal mucosa</li>
+<li>Moderate-severe sagging = contraindication for filler (→ surgery)</li>
+</ul>`,
+products: "High G′ — Voluma, Radiesse, Restylane Lyft.",
+volumes: "Average 1.5 mL per session for melomental/prejowl unit.",
+outcomes: "Smooth, seamless transition between jowl and chin. Restored mandibular border continuity.",
+pearls: `<ul>
+<li>If DAO hyperactive → neurotoxin first to decrease mimetic forces and prolong filler duration</li>
+<li>Animation assessment: check during smile and pout for lumps or 'sausage' deformities</li>
+<li>Local anesthesia: 0.1–0.2 mL lidocaine+epi at entry point and near mental foramen</li>
+</ul>`
+},
+
+jowling: {
+title: "Jowling / Mandibular Contour Loss",
+sequencePriority: 3,
+sequenceNote: "NEVER treat jawline in isolation if midface is sagging. Top-down: midface → chin → jawline.",
+indications: "Mandibular contour deficiency: early sagging (40–45), jowling with prejowl sulcus formation, skeletal + soft tissue atrophy, age-related retrogenia.",
+targetCompartments: "See Jawline Definition card — same protocol.",
+howToReach: "See Jawline Definition card.",
+vessels: "See Jawline Definition card.",
+avoidance: "See Jawline Definition card.",
+products: "See Jawline Definition card.",
+volumes: "See Jawline Definition card.",
+outcomes: "See Jawline Definition card.",
+pearls: `<ul><li>For moderate-severe sagging: filler contraindicated → surgical candidate</li></ul>`
+},
+
+jawline: {
+title: "Jawline Definition / Mandibular Border Contouring",
+sequencePriority: 3,
+sequenceNote: "Top-down: midface FIRST → chin projection → then jawline. 360-degree approach.",
+indications: "Mandibular contour deficiency, early lower face sagging (40–45), jowling + prejowl sulcus, skeletal/soft tissue atrophy, age-related retrogenia.",
+targetCompartments: `<b>MD Codes Jowl (Jw) sequence:</b>
+<table>
+<tr><th>Code</th><th>Target</th><th>Plane</th><th>Volume/side</th></tr>
+<tr><td>Jw1</td><td>Mandible angle</td><td>Supraperiosteal bolus or subq threads</td><td>0.5 mL</td></tr>
+<tr><td>Jw2</td><td>Pre-auricular area</td><td>Subcutaneous</td><td>0.5 mL</td></tr>
+<tr><td>Jw3</td><td>Mandible body</td><td>Subcutaneous</td><td>1.0 mL</td></tr>
+<tr><td>Jw4/5</td><td>Prejowl + anterior chin</td><td>Subcutaneous threads</td><td>Per clinical need</td></tr>
+</table>
+Full MD Codes: 2.0 mL/side = 4.0 mL total. Conservative real-world: ~2 mL total both sides.`,
+howToReach: `<b>Layers:</b> Bone → Deep fat → Platysma → Superficial fat → Skin.<br><br>
+<b>Deep Supraperiosteal:</b> Depot injections on bone at chin, pre/postjowl concavities, mandibular angle. Provides 'sharp' border definition.<br><br>
+<b>Subcutaneous:</b> Used for Jw2–Jw5. Generalized volumization, smoothing transitions, jowl camouflage.<br><br>
+<b>Retrograde Threading:</b> 25G needle or cannula along mandibular border connecting depot sites into smooth continuous line.<br><br>
+<b>Sub-DAO Plane:</b> For deep lateral chin compartment (prejowl). Cannula from parasagittal midline port, advance cephalically deep to DAO.<br><br>
+<b>Entry Points:</b>
+<ul>
+<li>Anterior jowl port — reaches jawline and prejowl</li>
+<li>Parasagittal midline port — for sub-DAO plane access</li>
+<li>Midline chin port — for mental fat pad and labiomental crease</li>
+</ul>
+<b>Massage:</b> Ultrasound gel to blend; no detectable transition zones or lumps.`,
+vessels: `<ul>
+<li><b>Facial artery</b> — crosses mandibular border ~3 cm anterior to jaw angle at antegonial notch. ALWAYS palpate and mark before injecting</li>
+<li><b>Mental foramen</b> — below 2nd premolar, midway mandibular body height</li>
+<li><b>Marginal mandibular nerve</b> — cranial to mandibular border in 81% of cases. Injections CAUDAL to labiomental crease are safe. Preperiosteal injections safest with medial approach</li>
+<li><b>Stensen (parotid) duct</b> — crosses masseter at 2nd molar level</li>
+</ul>`,
+avoidance: `<ul>
+<li>Aspirate ≥3 seconds before injecting near facial artery (3 cm anterior to jaw angle) and mental foramen</li>
+<li>Palpate antegonial notch — mark vessel path</li>
+<li>Injecting on bone = safest (away from intravascular risk)</li>
+<li>Use 25G+ cannula for maximum safety</li>
+<li>Caution near parotid duct during posterior jawline injections</li>
+</ul>`,
+products: "High G′ — Radiesse (CaHA), Voluma, Restylane Lyft. Must be stiff for 'sharp' definition.",
+volumes: "Conservative: ~2 mL total both sides. Full MD Codes: 4.0 mL total (2.0 mL/side).",
+outcomes: "Sharp, defined mandibular border. Smooth 360° transition. Reduced jowling and prejowl depression.",
+pearls: `<ul>
+<li><b>Female vs Male:</b> Female = continuous smooth line ending at ear (one retrograde pass). Male = more angular (two perpendicular injections for 'square' look)</li>
+<li>Avoid overfilling C5/C6 in women → creates masculine square jaw instead of feminine taper</li>
+<li>In very thin patients: conservative volumes to prevent buccal mucosa filler visibility</li>
+<li>Supraperiosteal injections minimize intravascular risk</li>
+</ul>`
+}
+
+};
+
+function generatePlan(){
+const checked = [...document.querySelectorAll('#checklist input:checked')].map(c=>c.value);
+if(!checked.length){alert('Please select at least one concern.');return;}
+
+let html = '';
+
+// Determine sequence
+const items = checked.map(k=>({key:k,...DATA[k]})).filter(x=>x.title);
+items.sort((a,b)=>(a.sequencePriority||5)-(b.sequencePriority||5));
+
+// Summary
+html += `<div class="summary-bar">📋 <b>Plan generated for ${items.length} concern(s)</b>. Organized by treatment sequence (foundation → contour → refinement).</div>`;
+
+// Global sequence note
+const hasMidface = checked.some(k=>['midface_deflation','lid_cheek_blurring','midcheek_groove','nlf','tear_trough','pmg','malar_mound','negative_vector','scleral_show','pyriform_depression'].includes(k));
+const hasLowerFace = checked.some(k=>['chin_retrogenia','prejowl','jawline','jowling','marionette_lines','mentalis_strain','labiomental_crease'].includes(k));
+const hasLips = checked.some(k=>['lip_volume','vermilion_border','philtral_columns','cupids_bow','lip_inversion','roorf_deficit','barcode_lines','oral_commissure','gummy_smile'].includes(k));
+const hasTemple = checked.some(k=>['temple_hollowing','brow_ptosis'].includes(k));
+
+html += `<div class="seq-note"><b>🔄 Treatment Sequence (Waldorf / Top-Down Logic):</b><ol>`;
+if(hasMidface) html += `<li><b>Midface foundation</b> — cheeks, SOOF, DMCF, prezygomatic space (addresses upward vectors, reduces pseudoptosis)</li>`;
+if(hasTemple) html += `<li><b>Temple contouring</b> — follows midface foundation</li>`;
+if(hasLowerFace) html += `<li><b>Lower face structure</b> — chin projection → prejowl → jawline (after midface is supported)</li>`;
+if(hasLips) html += `<li><b>Lips & perioral</b> — assess skeletal support (ROOrF) before direct lip work</li>`;
+html += `</ol></div>`;
+
+// Cards
+items.forEach(item=>{
+html += `<div class="plan-card">
+<h2>${item.title}</h2>
+<div class="seq-note" style="margin-bottom:10px">⏱ <b>Sequence:</b> ${item.sequenceNote}</div>
+
+<h3 class="collapsible" onclick="toggleColl(this)">Indications</h3>
+<div class="coll-body show">${item.indications}</div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Target Compartments</h3>
+<div class="coll-body show">${item.targetCompartments}</div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">How to Reach (Technique)</h3>
+<div class="coll-body show">${item.howToReach}</div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Vessels & Danger Zones</h3>
+<div class="coll-body show"><div class="safety">${item.vessels}</div></div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Avoidance Strategies</h3>
+<div class="coll-body show">${item.avoidance}</div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Products</h3>
+<div class="coll-body show"><div class="product-box">${item.products}</div></div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Volumes</h3>
+<div class="coll-body show">${item.volumes}</div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Expected Outcomes</h3>
+<div class="coll-body show">${item.outcomes}</div>
+
+<h3 class="collapsible open" onclick="toggleColl(this)">Clinical Pearls</h3>
+<div class="coll-body show"><div class="pearl">${item.pearls}</div></div>
+</div>`;
+});
+
+// Product summary table
+const productMap = {};
+items.forEach(item=>{
+const text = item.products + ' ' + (item.volumes||'');
+['Voluma','Radiesse','Restylane Lyft','Restylane Silk','Teosyal Ultra Deep','Teosyal RHA 4','RHA 4','RHA 3','RHA 2','Volbella','Redensity 2','Restylane Kysse','Juvéderm Ultra'].forEach(p=>{
+if(text.includes(p)){
+if(!productMap[p]) productMap[p]=[];
+productMap[p].push(item.title);
+}
+});
+});
+if(Object.keys(productMap).length){
+html += `<div class="plan-card"><h2>Product Summary</h2><table><tr><th>Product</th><th>Used For</th></tr>`;
+Object.entries(productMap).forEach(([prod,areas])=>{
+html += `<tr><td><b>${prod}</b></td><td>${areas.join(', ')}</td></tr>`;
+});
+html += `</table></div>`;
+}
+
+document.getElementById('output').innerHTML = html;
+document.getElementById('output').scrollIntoView({behavior:'smooth'});
+}
+
+function toggleColl(el){
+el.classList.toggle('open');
+const body = el.nextElementSibling;
+body.classList.toggle('show');
+}
+</script>
+</body>
+</html>
